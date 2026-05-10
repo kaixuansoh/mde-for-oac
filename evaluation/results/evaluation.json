@@ -1,13 +1,137 @@
 {
-  "generated_at": "2026-05-10T17:01:05Z",
+  "generated_at": "2026-05-10T17:05:19Z",
   "summary": {
-    "scenarios": 2,
+    "scenarios": 3,
     "avg_CCR": 1.0,
     "avg_TCR_overall": 1.0,
     "avg_CED": 0.0,
     "avg_MER": null
   },
   "scenarios": [
+    {
+      "scenario": "banking",
+      "instance": "/Users/kaixuan.soh/Downloads/dissertation/framework/examples/banking.observability",
+      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/framework/generated/banking",
+      "source_model": {
+        "services": 6,
+        "pipelines": 3,
+        "required": {
+          "spans": 19,
+          "metrics": 20,
+          "logs": 8,
+          "alerts": 6
+        }
+      },
+      "generated": {
+        "artefacts": 20,
+        "spans_present": 19,
+        "metrics_present": 20,
+        "logs_present": 8,
+        "alerts_present": 6
+      },
+      "artefact_correctness": [
+        {
+          "file": "AccountServiceInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "AccountServiceLogs.java",
+          "correct": true
+        },
+        {
+          "file": "AccountServiceMetrics.java",
+          "correct": true
+        },
+        {
+          "file": "AuthServiceInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "AuthServiceLogs.java",
+          "correct": true
+        },
+        {
+          "file": "AuthServiceMetrics.java",
+          "correct": true
+        },
+        {
+          "file": "FraudDetectionServiceInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "FraudDetectionServiceLogs.java",
+          "correct": true
+        },
+        {
+          "file": "FraudDetectionServiceMetrics.java",
+          "correct": true
+        },
+        {
+          "file": "LedgerServiceInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "LedgerServiceLogs.java",
+          "correct": true
+        },
+        {
+          "file": "LedgerServiceMetrics.java",
+          "correct": true
+        },
+        {
+          "file": "NotificationServiceInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "NotificationServiceLogs.java",
+          "correct": true
+        },
+        {
+          "file": "NotificationServiceMetrics.java",
+          "correct": true
+        },
+        {
+          "file": "TransactionServiceInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "TransactionServiceLogs.java",
+          "correct": true
+        },
+        {
+          "file": "TransactionServiceMetrics.java",
+          "correct": true
+        },
+        {
+          "file": "otel-collector.yaml",
+          "correct": true
+        },
+        {
+          "file": "prometheus-alerts.yaml",
+          "correct": true
+        }
+      ],
+      "metrics": {
+        "CCR": 1.0,
+        "TCR_overall": 1.0,
+        "TCR_breakdown": {
+          "spans": 1.0,
+          "metrics": 1.0,
+          "logs": 1.0,
+          "alerts": 1.0
+        },
+        "CED": 0.0,
+        "MER": null
+      },
+      "timing_seconds": {
+        "T_generated": 0.01137,
+        "T_manual": null
+      },
+      "validation": {
+        "source_model_errors": 0,
+        "source_model_warnings": 0
+      }
+    },
     {
       "scenario": "ecommerce",
       "instance": "/Users/kaixuan.soh/Downloads/dissertation/framework/examples/ecommerce.observability",
@@ -88,7 +212,7 @@
         "MER": null
       },
       "timing_seconds": {
-        "T_generated": 0.008395,
+        "T_generated": 0.004085,
         "T_manual": null
       },
       "validation": {
@@ -152,7 +276,7 @@
         "MER": null
       },
       "timing_seconds": {
-        "T_generated": 0.006896,
+        "T_generated": 0.001396,
         "T_manual": null
       },
       "validation": {

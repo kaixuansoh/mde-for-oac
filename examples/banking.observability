@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Six-service digital banking scenario.
+  Demonstrates a realistic distributed-systems pattern:
+
+      Client → AuthService → (token)
+      Client → AccountService → balance check
+      Client → TransactionService ─┬─→ FraudDetectionService
+                                   ├─→ AccountService (debit)
+                                   ├─→ LedgerService
+                                   └─→ NotificationService
+
+  Three shared Collector pipelines (TRACES with tail sampling, METRICS,
+  LOGS), six cross-service alert rules.
+
+  Service indices:
+    0: AuthService          1: AccountService          2: TransactionService
+    3: FraudDetectionService 4: NotificationService     5: LedgerService
+-->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="banking-observability"
+    version="1.0.0">
+
+  <!-- Service 0: AuthService -->
+  <services
+      name="AuthService"
+      namespace="com.acme.banking.auth"
+      version="3.2.0"
+      environment="production"
+      language="JAVA">
+    <resourceAttributes key="service.name"           valueType="STRING" value="AuthService"     semanticConvention="service.name"/>
+    <resourceAttributes key="service.namespace"      valueType="STRING" value="com.acme.banking" semanticConvention="service.namespace"/>
+    <resourceAttributes key="deployment.environment" valueType="STRING" value="production"      semanticConvention="deployment.environment"/>
+    <sampler type="PARENT_BASED" ratio="0.2"/>
+    <instrumentations name="com.acme.banking.auth" version="3.2.0">
+      <spans name="Login" kind="SERVER">
+        <attributes key="http.request.method" valueType="STRING" value="POST"        semanticConvention="http.request.method"/>
+        <attributes key="http.route"          valueType="STRING" value="/auth/login" semanticConvention="http.route"/>
+      </spans>
+      <spans name="VerifyMFA" kind="INTERNAL"
+             parentSpan="//@services.0/@instrumentations.0/@spans.0">
+        <attributes key="component" valueType="STRING" value="mfa"/>
+      </spans>
+      <spans name="IssueToken" kind="INTERNAL" statusCode="OK"
+             parentSpan="//@services.0/@instrumentations.0/@spans.0">
+        <attributes key="component" valueType="STRING" value="token"/>
+      </spans>
+      <metrics name="auth.login.attempts"  type="COUNTER"   unit="1"  valueType="LONG"   description="Total login attempts"/>
+      <metrics name="auth.login.failures"  type="COUNTER"   unit="1"  valueType="LONG"   description="Failed login attempts"/>
+      <metrics name="auth.login.duration"  type="HISTOGRAM" unit="ms" valueType="DOUBLE" aggregation="EXPLICIT_BUCKET_HISTOGRAM" description="Login latency"/>
+      <metrics name="auth.tokens.issued"   type="COUNTER"   unit="1"  valueType="LONG"   description="Authentication tokens issued"/>
+      <logs severityNumber="13" severityText="WARN" body="MFA verification failed" correlateToSpan="true">
+        <attributes key="reason" valueType="STRING" value="invalid_code"/>
+      </logs>
+      <logs severityNumber="9" severityText="INFO" body="User authenticated successfully" correlateToSpan="true"/>
+    </instrumentations>
+  </services>
+
+  <!-- Service 1: AccountService -->
+  <services
+      name="AccountService"
+      namespace="com.acme.banking.accounts"
+      version="2.5.0"
+      environment="production"
+      language="JAVA">
+    <resourceAttributes key="service.name"           valueType="STRING" value="AccountService"  semanticConvention="service.name"/>
+    <resourceAttributes key="deployment.environment" valueType="STRING" value="production"      semanticConvention="deployment.environment"/>
+    <sampler type="PARENT_BASED" ratio="0.1"/>
+    <instrumentations name="com.acme.banking.accounts" version="2.5.0">
+      <spans name="GetAccountBalance" kind="SERVER">
+        <attributes key="http.request.method" valueType="STRING" value="GET"                semanticConvention="http.request.method"/>
+        <attributes key="http.route"          valueType="STRING" value="/accounts/{id}"     semanticConvention="http.route"/>
+      </spans>
+      <spans name="QueryAccountDB" kind="CLIENT"
+             parentSpan="//@services.1/@instrumentations.0/@spans.0">
+        <attributes key="db.system"    valueType="STRING" value="postgresql" semanticConvention="db.system"/>
+        <attributes key="db.operation" valueType="STRING" value="SELECT"     semanticConvention="db.operation"/>
+      </spans>
+      <spans name="ApplyDebit" kind="INTERNAL">
+        <attributes key="component" valueType="STRING" value="ledger"/>
+      </spans>
+      <metrics name="account.queries.total" type="COUNTER" unit="1" valueType="LONG"   description="Total account queries"/>
+      <metrics name="account.balance"       type="GAUGE"   unit="1" valueType="DOUBLE" description="Current account balance (sampled)"/>
+      <metrics name="account.errors.total"  type="COUNTER" unit="1" valueType="LONG"   description="Account service errors"/>
+      <logs severityNumber="17" severityText="ERROR" body="Account database unreachable" correlateToSpan="true">
+        <attributes key="error.type" valueType="STRING" value="db_timeout"/>
+      </logs>
+    </instrumentations>
+  </services>
+
+  <!-- Service 2: TransactionService -->
+  <services
+      name="TransactionService"
+      namespace="com.acme.banking.transactions"
+      version="4.0.0"
+      environment="production"
+      language="JAVA">
+    <resourceAttributes key="service.name"           valueType="STRING" value="TransactionService" semanticConvention="service.name"/>
+    <resourceAttributes key="deployment.environment" valueType="STRING" value="production"         semanticConvention="deployment.environment"/>
+    <sampler type="PARENT_BASED" ratio="0.5"/>
+    <instrumentations name="com.acme.banking.transactions" version="4.0.0">
+      <spans name="InitiateTransfer" kind="SERVER">
+        <attributes key="http.request.method" valueType="STRING" value="POST"             semanticConvention="http.request.method"/>
+        <attributes key="http.route"          valueType="STRING" value="/transfers"       semanticConvention="http.route"/>
+      </spans>
+      <spans name="CheckFraud" kind="CLIENT"
+             parentSpan="//@services.2/@instrumentations.0/@spans.0">
+        <attributes key="net.peer.name" valueType="STRING" value="fraud-service" semanticConvention="net.peer.name"/>
+        <attributes key="rpc.system"    valueType="STRING" value="grpc"          semanticConvention="rpc.system"/>
+      </spans>
+      <spans name="DebitSourceAccount" kind="CLIENT"
+             parentSpan="//@services.2/@instrumentations.0/@spans.0">
+        <attributes key="net.peer.name" valueType="STRING" value="account-service" semanticConvention="net.peer.name"/>
+      </spans>
+      <spans name="RecordLedgerEntry" kind="CLIENT"
+             parentSpan="//@services.2/@instrumentations.0/@spans.0">
+        <attributes key="net.peer.name" valueType="STRING" value="ledger-service" semanticConvention="net.peer.name"/>
+      </spans>
+      <spans name="SendNotification" kind="PRODUCER"
+             parentSpan="//@services.2/@instrumentations.0/@spans.0">
+        <attributes key="messaging.system"      valueType="STRING" value="kafka"                  semanticConvention="messaging.system"/>
+        <attributes key="messaging.destination" valueType="STRING" value="transaction.completed"  semanticConvention="messaging.destination"/>
+      </spans>
+      <metrics name="transactions.initiated.total"  type="COUNTER"          unit="1"  valueType="LONG"   description="Transfers initiated"/>
+      <metrics name="transactions.completed.total"  type="COUNTER"          unit="1"  valueType="LONG"   description="Transfers completed successfully"/>
+      <metrics name="transactions.failed.total"     type="COUNTER"          unit="1"  valueType="LONG"   description="Failed transfer attempts"/>
+      <metrics name="transaction.duration"          type="HISTOGRAM"        unit="ms" valueType="DOUBLE" aggregation="EXPLICIT_BUCKET_HISTOGRAM" description="End-to-end transfer latency"/>
+      <metrics name="transactions.in_flight"        type="UP_DOWN_COUNTER"  unit="1"  valueType="LONG"   description="In-flight transfers"/>
+      <logs severityNumber="17" severityText="ERROR" body="Transfer failed insufficient funds" correlateToSpan="true">
+        <attributes key="error.type" valueType="STRING" value="insufficient_funds"/>
+      </logs>
+      <logs severityNumber="9" severityText="INFO" body="Transfer completed successfully" correlateToSpan="true"/>
+    </instrumentations>
+  </services>
+
+  <!-- Service 3: FraudDetectionService -->
+  <services
+      name="FraudDetectionService"
+      namespace="com.acme.banking.fraud"
+      version="1.8.0"
+      environment="production"
+      language="JAVA">
+    <resourceAttributes key="service.name"           valueType="STRING" value="FraudDetectionService" semanticConvention="service.name"/>
+    <resourceAttributes key="deployment.environment" valueType="STRING" value="production"            semanticConvention="deployment.environment"/>
+    <sampler type="PARENT_BASED" ratio="1.0"/>
+    <instrumentations name="com.acme.banking.fraud" version="1.8.0">
+      <spans name="ScoreTransaction" kind="SERVER">
+        <attributes key="rpc.system" valueType="STRING" value="grpc" semanticConvention="rpc.system"/>
+      </spans>
+      <spans name="LookupRiskRules" kind="INTERNAL"
+             parentSpan="//@services.3/@instrumentations.0/@spans.0">
+        <attributes key="component" valueType="STRING" value="rules-engine"/>
+      </spans>
+      <spans name="QueryFraudHistory" kind="CLIENT"
+             parentSpan="//@services.3/@instrumentations.0/@spans.0">
+        <attributes key="db.system" valueType="STRING" value="cassandra" semanticConvention="db.system"/>
+      </spans>
+      <metrics name="fraud.scores.computed" type="COUNTER"   unit="1" valueType="LONG"   description="Risk scores computed"/>
+      <metrics name="fraud.score"            type="HISTOGRAM" unit="1" valueType="DOUBLE" aggregation="EXPLICIT_BUCKET_HISTOGRAM" description="Distribution of risk scores"/>
+      <metrics name="fraud.flagged.total"    type="COUNTER"   unit="1" valueType="LONG"   description="Transactions flagged as high-risk"/>
+      <logs severityNumber="13" severityText="WARN" body="High risk transaction flagged" correlateToSpan="true">
+        <attributes key="risk.score" valueType="DOUBLE" value="0.92"/>
+      </logs>
+    </instrumentations>
+  </services>
+
+  <!-- Service 4: NotificationService -->
+  <services
+      name="NotificationService"
+      namespace="com.acme.banking.notifications"
+      version="1.4.0"
+      environment="production"
+      language="JAVA">
+    <resourceAttributes key="service.name"           valueType="STRING" value="NotificationService" semanticConvention="service.name"/>
+    <resourceAttributes key="deployment.environment" valueType="STRING" value="production"          semanticConvention="deployment.environment"/>
+    <sampler type="PARENT_BASED" ratio="0.05"/>
+    <instrumentations name="com.acme.banking.notifications" version="1.4.0">
+      <spans name="SendNotification" kind="SERVER">
+        <attributes key="messaging.system" valueType="STRING" value="kafka" semanticConvention="messaging.system"/>
+      </spans>
+      <spans name="DispatchEmail" kind="CLIENT"
+             parentSpan="//@services.4/@instrumentations.0/@spans.0">
+        <attributes key="net.peer.name" valueType="STRING" value="smtp-relay" semanticConvention="net.peer.name"/>
+      </spans>
+      <spans name="DispatchPush" kind="CLIENT"
+             parentSpan="//@services.4/@instrumentations.0/@spans.0">
+        <attributes key="net.peer.name" valueType="STRING" value="fcm-gateway" semanticConvention="net.peer.name"/>
+      </spans>
+      <metrics name="notifications.sent.total"      type="COUNTER"   unit="1"  valueType="LONG"   description="Notifications successfully sent"/>
+      <metrics name="notifications.failed.total"    type="COUNTER"   unit="1"  valueType="LONG"   description="Notification dispatch failures"/>
+      <metrics name="notification.dispatch.duration" type="HISTOGRAM" unit="ms" valueType="DOUBLE" aggregation="EXPLICIT_BUCKET_HISTOGRAM" description="Time to dispatch a notification"/>
+      <logs severityNumber="17" severityText="ERROR" body="Notification dispatch failed" correlateToSpan="true">
+        <attributes key="channel" valueType="STRING" value="email"/>
+      </logs>
+    </instrumentations>
+  </services>
+
+  <!-- Service 5: LedgerService -->
+  <services
+      name="LedgerService"
+      namespace="com.acme.banking.ledger"
+      version="2.0.0"
+      environment="production"
+      language="JAVA">
+    <resourceAttributes key="service.name"           valueType="STRING" value="LedgerService" semanticConvention="service.name"/>
+    <resourceAttributes key="deployment.environment" valueType="STRING" value="production"    semanticConvention="deployment.environment"/>
+    <instrumentations name="com.acme.banking.ledger" version="2.0.0">
+      <spans name="RecordEntry" kind="SERVER">
+        <attributes key="rpc.system" valueType="STRING" value="grpc" semanticConvention="rpc.system"/>
+      </spans>
+      <spans name="PersistLedgerEntry" kind="CLIENT"
+             parentSpan="//@services.5/@instrumentations.0/@spans.0">
+        <attributes key="db.system"    valueType="STRING" value="postgresql" semanticConvention="db.system"/>
+        <attributes key="db.operation" valueType="STRING" value="INSERT"     semanticConvention="db.operation"/>
+      </spans>
+      <metrics name="ledger.entries.total"        type="COUNTER" unit="1" valueType="LONG"   description="Ledger entries written"/>
+      <metrics name="ledger.balance.discrepancy"  type="GAUGE"   unit="1" valueType="DOUBLE" description="Aggregate ledger imbalance (zero in steady state)"/>
+      <logs severityNumber="17" severityText="ERROR" body="Ledger imbalance detected" correlateToSpan="true">
+        <attributes key="discrepancy" valueType="DOUBLE" value="0.01"/>
+      </logs>
+    </instrumentations>
+  </services>
+
+  <!-- Shared TRACES pipeline with tail sampling and compliance tagging -->
+  <pipelines name="traces-pipeline" signal="TRACES">
+    <receivers xsi:type="obs:OtlpReceiver" name="otlp" protocol="GRPC" endpoint="0.0.0.0:4317"/>
+    <processors xsi:type="obs:MemoryLimiterProcessor" name="memory_limiter"
+                limitMiB="1024" spikeLimitMiB="256"/>
+    <processors xsi:type="obs:AttributesProcessor" name="compliance_tags">
+      <actions action="INSERT" key="bank.tenant"     value="acme"/>
+      <actions action="INSERT" key="bank.region"     value="my-kl-1"/>
+      <actions action="UPSERT" key="data.classification" value="confidential"/>
+    </processors>
+    <processors xsi:type="obs:BatchProcessor" name="batch"
+                timeout="5s" maxBatchSize="512"/>
+    <processors xsi:type="obs:TailSamplingProcessor" name="tail_sampling"
+                decisionWait="30s">
+      <policies name="errors-always"        type="STATUS_CODE"    value="ERROR"/>
+      <policies name="fraud-flagged-always" type="STRING_ATTRIBUTE" value="fraud.flagged"/>
+      <policies name="probabilistic-rest"   type="PROBABILISTIC"  value="0.1"/>
+    </processors>
+    <exporters xsi:type="obs:OtlpExporter" name="otlp" endpoint="otel-collector:4317" compression="gzip"/>
+  </pipelines>
+
+  <!-- Shared METRICS pipeline -->
+  <pipelines name="metrics-pipeline" signal="METRICS">
+    <receivers xsi:type="obs:OtlpReceiver" name="otlp" protocol="GRPC" endpoint="0.0.0.0:4317"/>
+    <processors xsi:type="obs:MemoryLimiterProcessor" name="memory_limiter"
+                limitMiB="512" spikeLimitMiB="128"/>
+    <processors xsi:type="obs:BatchProcessor" name="batch"
+                timeout="10s" maxBatchSize="1024"/>
+    <exporters xsi:type="obs:PrometheusExporter" name="prometheus" endpoint="0.0.0.0:8889"/>
+  </pipelines>
+
+  <!-- Shared LOGS pipeline -->
+  <pipelines name="logs-pipeline" signal="LOGS">
+    <receivers xsi:type="obs:OtlpReceiver" name="otlp" protocol="GRPC" endpoint="0.0.0.0:4317"/>
+    <processors xsi:type="obs:BatchProcessor" name="batch" timeout="5s" maxBatchSize="512"/>
+    <exporters xsi:type="obs:OtlpExporter" name="otlp" endpoint="otel-collector:4317"/>
+  </pipelines>
+
+  <!-- Cross-service alerts -->
+  <alertRules
+      name="HighAuthFailureRate"
+      description="Authentication failure rate exceeds 10% over the last 5 minutes"
+      expression="rate(auth_login_failures_total[5m]) / rate(auth_login_attempts_total[5m]) > 0.1"
+      severity="CRITICAL"
+      forDuration="5m"
+      referencedMetric="//@services.0/@instrumentations.0/@metrics.1">
+    <labels      key="team"    valueType="STRING" value="iam"/>
+    <annotations key="summary" valueType="STRING" value="Auth failure rate above 10%"/>
+  </alertRules>
+
+  <alertRules
+      name="SlowAuthLatencyP99"
+      description="Authentication p99 latency exceeds 500ms over the last 5 minutes"
+      expression="histogram_quantile(0.99, sum(rate(auth_login_duration_bucket[5m])) by (le)) &gt; 500"
+      severity="WARNING"
+      forDuration="10m"
+      referencedMetric="//@services.0/@instrumentations.0/@metrics.2">
+    <labels      key="team"    valueType="STRING" value="iam"/>
+    <annotations key="summary" valueType="STRING" value="Auth p99 above 500ms"/>
+  </alertRules>
+
+  <alertRules
+      name="HighTransactionFailureRate"
+      description="Transaction failure rate exceeds 5% over the last 5 minutes"
+      expression="rate(transactions_failed_total[5m]) / rate(transactions_initiated_total[5m]) > 0.05"
+      severity="CRITICAL"
+      forDuration="5m"
+      referencedMetric="//@services.2/@instrumentations.0/@metrics.2">
+    <labels      key="team"    valueType="STRING" value="payments"/>
+    <annotations key="summary" valueType="STRING" value="Transaction failure rate above 5%"/>
+  </alertRules>
+
+  <alertRules
+      name="HighFraudFlagRate"
+      description="Fraud flag rate exceeds 1% sustained over 10 minutes"
+      expression="rate(fraud_flagged_total[10m]) / rate(fraud_scores_computed_total[10m]) > 0.01"
+      severity="WARNING"
+      forDuration="10m"
+      referencedMetric="//@services.3/@instrumentations.0/@metrics.2">
+    <labels      key="team"    valueType="STRING" value="risk"/>
+    <annotations key="summary" valueType="STRING" value="Fraud flag rate above 1%"/>
+  </alertRules>
+
+  <alertRules
+      name="NotificationDeliveryFailures"
+      description="Notification delivery failure rate exceeds 2% over 5 minutes"
+      expression="rate(notifications_failed_total[5m]) / (rate(notifications_sent_total[5m]) + rate(notifications_failed_total[5m])) > 0.02"
+      severity="WARNING"
+      forDuration="5m"
+      referencedMetric="//@services.4/@instrumentations.0/@metrics.1">
+    <labels      key="team"    valueType="STRING" value="platform"/>
+    <annotations key="summary" valueType="STRING" value="Notification failure rate above 2%"/>
+  </alertRules>
+
+  <alertRules
+      name="LedgerImbalance"
+      description="Ledger discrepancy detected — must be zero in steady state"
+      expression="abs(ledger_balance_discrepancy) > 0"
+      severity="CRITICAL"
+      forDuration="2m"
+      referencedMetric="//@services.5/@instrumentations.0/@metrics.1">
+    <labels      key="team"    valueType="STRING" value="finance-engineering"/>
+    <annotations key="summary"     valueType="STRING" value="Ledger imbalance — investigate immediately"/>
+    <annotations key="runbook_url" valueType="STRING" value="https://runbooks.acme.com/ledger/imbalance"/>
+  </alertRules>
+
+</obs:ObservabilityModel>
