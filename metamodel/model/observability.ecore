@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    name="observability"
+    nsURI="http://dissertation.um.edu.my/observability/1.0"
+    nsPrefix="obs">
+
+  <!-- ================================================================== -->
+  <!-- OCL validation delegates: invariants below are evaluated at runtime  -->
+  <!-- by Eclipse OCL when the model is validated via Diagnostician.        -->
+  <!-- ================================================================== -->
+  <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+    <details key="invocationDelegates" value="http://www.eclipse.org/emf/2002/Ecore/OCL"/>
+    <details key="settingDelegates"    value="http://www.eclipse.org/emf/2002/Ecore/OCL"/>
+    <details key="validationDelegates" value="http://www.eclipse.org/emf/2002/Ecore/OCL"/>
+  </eAnnotations>
+
+  <!-- ================================================================== -->
+  <!-- ENUMERATIONS                                                         -->
+  <!-- ================================================================== -->
+
+  <eClassifiers xsi:type="ecore:EEnum" name="Language">
+    <eLiterals name="JAVA"   value="0"/>
+    <eLiterals name="PYTHON" value="1"/>
+    <eLiterals name="GO"     value="2"/>
+    <eLiterals name="NODEJS" value="3"/>
+    <eLiterals name="DOTNET" value="4"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="SpanKind">
+    <eLiterals name="INTERNAL" value="0"/>
+    <eLiterals name="SERVER"   value="1"/>
+    <eLiterals name="CLIENT"   value="2"/>
+    <eLiterals name="PRODUCER" value="3"/>
+    <eLiterals name="CONSUMER" value="4"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="StatusCode">
+    <eLiterals name="UNSET" value="0"/>
+    <eLiterals name="OK"    value="1"/>
+    <eLiterals name="ERROR" value="2"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="MetricType">
+    <eLiterals name="COUNTER"                     value="0"/>
+    <eLiterals name="UP_DOWN_COUNTER"             value="1"/>
+    <eLiterals name="HISTOGRAM"                   value="2"/>
+    <eLiterals name="GAUGE"                       value="3"/>
+    <eLiterals name="OBSERVABLE_COUNTER"          value="4"/>
+    <eLiterals name="OBSERVABLE_UP_DOWN_COUNTER"  value="5"/>
+    <eLiterals name="OBSERVABLE_GAUGE"            value="6"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="ValueType">
+    <eLiterals name="LONG"   value="0"/>
+    <eLiterals name="DOUBLE" value="1"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="AggregationType">
+    <eLiterals name="DEFAULT"                    value="0"/>
+    <eLiterals name="SUM"                        value="1"/>
+    <eLiterals name="LAST_VALUE"                 value="2"/>
+    <eLiterals name="EXPLICIT_BUCKET_HISTOGRAM"  value="3"/>
+    <eLiterals name="DROP"                       value="4"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="AttributeValueType">
+    <eLiterals name="STRING"        value="0"/>
+    <eLiterals name="BOOLEAN"       value="1"/>
+    <eLiterals name="LONG"          value="2"/>
+    <eLiterals name="DOUBLE"        value="3"/>
+    <eLiterals name="STRING_ARRAY"  value="4"/>
+    <eLiterals name="BOOLEAN_ARRAY" value="5"/>
+    <eLiterals name="LONG_ARRAY"    value="6"/>
+    <eLiterals name="DOUBLE_ARRAY"  value="7"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="AlertSeverity">
+    <eLiterals name="CRITICAL" value="0"/>
+    <eLiterals name="WARNING"  value="1"/>
+    <eLiterals name="INFO"     value="2"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="SignalType">
+    <eLiterals name="TRACES"  value="0"/>
+    <eLiterals name="METRICS" value="1"/>
+    <eLiterals name="LOGS"    value="2"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="Protocol">
+    <eLiterals name="GRPC"          value="0"/>
+    <eLiterals name="HTTP_PROTOBUF" value="1"/>
+    <eLiterals name="HTTP_JSON"     value="2"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="SamplerType">
+    <eLiterals name="ALWAYS_ON"             value="0"/>
+    <eLiterals name="ALWAYS_OFF"            value="1"/>
+    <eLiterals name="TRACE_ID_RATIO_BASED"  value="2"/>
+    <eLiterals name="PARENT_BASED"          value="3"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="ActionType">
+    <eLiterals name="INSERT" value="0"/>
+    <eLiterals name="UPDATE" value="1"/>
+    <eLiterals name="UPSERT" value="2"/>
+    <eLiterals name="DELETE" value="3"/>
+    <eLiterals name="HASH"   value="4"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EEnum" name="PolicyType">
+    <eLiterals name="ALWAYS_SAMPLE"     value="0"/>
+    <eLiterals name="RATE_LIMITING"     value="1"/>
+    <eLiterals name="PROBABILISTIC"     value="2"/>
+    <eLiterals name="STATUS_CODE"       value="3"/>
+    <eLiterals name="STRING_ATTRIBUTE"  value="4"/>
+  </eClassifiers>
+
+  <!-- ================================================================== -->
+  <!-- ROOT CONTAINER: ObservabilityModel                                   -->
+  <!-- Constraints: E1 UniqueServiceNames, E12 NonEmptyModel                -->
+  <!-- ================================================================== -->
+
+  <eClassifiers xsi:type="ecore:EClass" name="ObservabilityModel">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="UniqueServiceNames NonEmptyModel"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL">
+      <details key="UniqueServiceNames" value="self.services->isUnique(s | s.name)"/>
+      <details key="NonEmptyModel"      value="self.services->notEmpty()"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="version"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="services"
+        eType="#//Service" containment="true" upperBound="-1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pipelines"
+        eType="#//TelemetryPipeline" containment="true" upperBound="-1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="alertRules"
+        eType="#//AlertRule" containment="true" upperBound="-1"/>
+  </eClassifiers>
+
+  <!-- ================================================================== -->
+  <!-- SERVICE & INSTRUMENTATION                                            -->
+  <!-- Service constraints: W3 W_LanguageInScope, W7 W_ServiceEmitsTelemetry-->
+  <!-- ================================================================== -->
+
+  <eClassifiers xsi:type="ecore:EClass" name="Service">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="W_LanguageInScope W_ServiceEmitsTelemetry"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL">
+      <details key="W_LanguageInScope" value="self.language = Language::JAVA"/>
+      <details key="W_ServiceEmitsTelemetry"
+               value="self.instrumentations->exists(scope | scope.spans->notEmpty() or scope.metrics->notEmpty() or scope.logs->notEmpty())"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="namespace"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="version"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="environment"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="language"
+        eType="#//Language" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="resourceAttributes"
+        eType="#//Attribute" containment="true" upperBound="-1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="instrumentations"
+        eType="#//InstrumentationScope" containment="true" lowerBound="1" upperBound="-1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sampler"
+        eType="#//Sampler" containment="true"/>
+  </eClassifiers>
+
+  <!-- Constraints: E2 UniqueMetricNames -->
+  <eClassifiers xsi:type="ecore:EClass" name="InstrumentationScope">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="UniqueMetricNames"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL">
+      <details key="UniqueMetricNames" value="self.metrics->isUnique(m | m.name)"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="version"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="spans"
+        eType="#//Span" containment="true" upperBound="-1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="metrics"
+        eType="#//Metric" containment="true" upperBound="-1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="logs"
+        eType="#//Log" containment="true" upperBound="-1"/>
+  </eClassifiers>
+
+  <!-- ================================================================== -->
+  <!-- SIGNALS                                                              -->
+  <!-- ================================================================== -->
+
+  <!-- Constraints: E4 ParentSpanSameScope -->
+  <eClassifiers xsi:type="ecore:EClass" name="Span">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="ParentSpanSameScope"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL">
+      <details key="ParentSpanSameScope"
+               value="self.parentSpan.oclIsUndefined() or self.parentSpan.eContainer() = self.eContainer()"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind"
+        eType="#//SpanKind" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="statusCode"
+        eType="#//StatusCode"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="attributes"
+        eType="#//Attribute" containment="true" upperBound="-1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="events"
+        eType="#//SpanEvent" containment="true" upperBound="-1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="parentSpan"
+        eType="#//Span"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="SpanEvent">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="attributes"
+        eType="#//Attribute" containment="true" upperBound="-1"/>
+  </eClassifiers>
+
+  <!-- Constraints: E11 HistogramAggregationConsistent, W1 W_UnitUCUM, W2 W_AttributeCardinality -->
+  <eClassifiers xsi:type="ecore:EClass" name="Metric">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="HistogramAggregationConsistent W_UnitUCUM W_AttributeCardinality"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL">
+      <details key="HistogramAggregationConsistent"
+               value="self.type = MetricType::HISTOGRAM implies (self.aggregation.oclIsUndefined() or self.aggregation = AggregationType::DEFAULT or self.aggregation = AggregationType::EXPLICIT_BUCKET_HISTOGRAM)"/>
+      <details key="W_UnitUCUM"
+               value="Set{'1','ms','s','By','KBy','MBy','GBy','{requests}','{errors}','%'}->includes(self.unit)"/>
+      <details key="W_AttributeCardinality"
+               value="self.attributes->size() &lt;= 10"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type"
+        eType="#//MetricType" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="unit"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="valueType"
+        eType="#//ValueType" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="aggregation"
+        eType="#//AggregationType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="attributes"
+        eType="#//Attribute" containment="true" upperBound="-1"/>
+  </eClassifiers>
+
+  <!-- Constraints: E8 SeverityInRange -->
+  <eClassifiers xsi:type="ecore:EClass" name="Log">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="SeverityInRange"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL">
+      <details key="SeverityInRange"
+               value="self.severityNumber >= 1 and self.severityNumber &lt;= 24"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="severityNumber"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="severityText"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="body"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="correlateToSpan"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        lowerBound="1" defaultValueLiteral="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="attributes"
+        eType="#//Attribute" containment="true" upperBound="-1"/>
+  </eClassifiers>
+
+  <!-- ================================================================== -->
+  <!-- ATTRIBUTES                                                           -->
+  <!-- Constraints: W4 W_SemanticConventionTagged                           -->
+  <!-- ================================================================== -->
+
+  <eClassifiers xsi:type="ecore:EClass" name="Attribute">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="W_SemanticConventionTagged"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL">
+      <details key="W_SemanticConventionTagged"
+               value="let knownPrefixes : Set(String) = Set{'http.','db.','rpc.','messaging.','net.','service.','k8s.','cloud.'} in knownPrefixes->exists(p | self.key.startsWith(p)) implies not self.semanticConvention.oclIsUndefined()"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="valueType"
+        eType="#//AttributeValueType" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="semanticConvention"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- ================================================================== -->
+  <!-- TELEMETRY PIPELINE (Collector model)                                 -->
+  <!-- Constraints: E5 NonEmptyEndpoints, E6a TracesPipelineComponentCompat,-->
+  <!--              E6b MetricsPipelineComponentCompat,                     -->
+  <!--              W5 W_BatchProcessorRecommended                          -->
+  <!-- ================================================================== -->
+
+  <eClassifiers xsi:type="ecore:EClass" name="TelemetryPipeline">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="NonEmptyEndpoints TracesPipelineComponentCompat MetricsPipelineComponentCompat W_BatchProcessorRecommended"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL">
+      <details key="NonEmptyEndpoints"
+               value="self.receivers->notEmpty() and self.exporters->notEmpty()"/>
+      <details key="TracesPipelineComponentCompat"
+               value="self.signal = SignalType::TRACES implies (self.receivers->forAll(r | not r.oclIsKindOf(PrometheusReceiver)) and self.exporters->forAll(e | not e.oclIsKindOf(PrometheusExporter)))"/>
+      <details key="MetricsPipelineComponentCompat"
+               value="self.signal = SignalType::METRICS implies (self.receivers->forAll(r | not r.oclIsKindOf(JaegerReceiver)) and self.exporters->forAll(e | not e.oclIsKindOf(JaegerExporter)))"/>
+      <details key="W_BatchProcessorRecommended"
+               value="self.processors->exists(p | p.oclIsKindOf(BatchProcessor))"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="signal"
+        eType="#//SignalType" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="receivers"
+        eType="#//Receiver" containment="true" lowerBound="1" upperBound="-1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="processors"
+        eType="#//Processor" containment="true" upperBound="-1"
+        ordered="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exporters"
+        eType="#//Exporter" containment="true" lowerBound="1" upperBound="-1"/>
+  </eClassifiers>
+
+  <!-- Receivers (abstract + concrete) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Receiver" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="protocol"
+        eType="#//Protocol" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="endpoint"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="OtlpReceiver"       eSuperTypes="#//Receiver"/>
+  <eClassifiers xsi:type="ecore:EClass" name="JaegerReceiver"     eSuperTypes="#//Receiver"/>
+  <eClassifiers xsi:type="ecore:EClass" name="PrometheusReceiver" eSuperTypes="#//Receiver"/>
+
+  <!-- Processors (abstract + concrete) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Processor" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="BatchProcessor" eSuperTypes="#//Processor">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="timeout"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxBatchSize"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="MemoryLimiterProcessor" eSuperTypes="#//Processor">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="limitMiB"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="spikeLimitMiB"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="AttributesProcessor" eSuperTypes="#//Processor">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="actions"
+        eType="#//AttributeAction" containment="true" lowerBound="1" upperBound="-1"
+        ordered="true"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="TailSamplingProcessor" eSuperTypes="#//Processor">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="decisionWait"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="policies"
+        eType="#//SamplingPolicy" containment="true" lowerBound="1" upperBound="-1"/>
+  </eClassifiers>
+
+  <!-- Exporters (abstract + concrete) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Exporter" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="endpoint"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="compression"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="OtlpExporter"       eSuperTypes="#//Exporter"/>
+  <eClassifiers xsi:type="ecore:EClass" name="PrometheusExporter" eSuperTypes="#//Exporter"/>
+  <eClassifiers xsi:type="ecore:EClass" name="LoggingExporter"    eSuperTypes="#//Exporter"/>
+  <eClassifiers xsi:type="ecore:EClass" name="JaegerExporter"     eSuperTypes="#//Exporter"/>
+
+  <!-- Constraints: E10 ActionValueRequired -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttributeAction">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="ActionValueRequired"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL">
+      <details key="ActionValueRequired"
+               value="(self.action = ActionType::INSERT or self.action = ActionType::UPDATE or self.action = ActionType::UPSERT) implies not self.value.oclIsUndefined()"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="action"
+        eType="#//ActionType" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="SamplingPolicy">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type"
+        eType="#//PolicyType" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- ================================================================== -->
+  <!-- SAMPLING (head-based, per-Service)                                   -->
+  <!-- Constraints: E7 SamplerRatioWellFormed                               -->
+  <!-- ================================================================== -->
+
+  <eClassifiers xsi:type="ecore:EClass" name="Sampler">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="SamplerRatioWellFormed"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL">
+      <details key="SamplerRatioWellFormed"
+               value="(self.type = SamplerType::TRACE_ID_RATIO_BASED or self.type = SamplerType::PARENT_BASED) implies (not self.ratio.oclIsUndefined() and self.ratio >= 0.0 and self.ratio &lt;= 1.0)"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type"
+        eType="#//SamplerType" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ratio"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+
+  <!-- ================================================================== -->
+  <!-- ALERTING                                                             -->
+  <!-- Constraints: E3 ReferencedMetricInModel, E9 ValidForDuration,        -->
+  <!--              W6 W_CriticalForDuration                                -->
+  <!-- ================================================================== -->
+
+  <eClassifiers xsi:type="ecore:EClass" name="AlertRule">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="ReferencedMetricInModel ValidForDuration W_CriticalForDuration"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL">
+      <details key="ReferencedMetricInModel"
+               value="self.eContainer().oclAsType(ObservabilityModel).services.instrumentations.metrics->includes(self.referencedMetric)"/>
+      <details key="ValidForDuration"
+               value="self.forDuration.matches('^[0-9]+(ms|s|m|h|d)$')"/>
+      <details key="W_CriticalForDuration"
+               value="self.severity = AlertSeverity::CRITICAL implies not self.forDuration.matches('^[0-9]+(ms|s)$')"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="expression"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="severity"
+        eType="#//AlertSeverity" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="forDuration"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="referencedMetric"
+        eType="#//Metric" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="labels"
+        eType="#//Attribute" containment="true" upperBound="-1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="annotations"
+        eType="#//Attribute" containment="true" upperBound="-1"/>
+  </eClassifiers>
+
+</ecore:EPackage>
