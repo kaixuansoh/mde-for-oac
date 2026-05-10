@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-08T15:59:45Z",
+  "generated_at": "2026-05-10T16:52:45Z",
   "summary": {
     "scenarios": 2,
     "avg_CCR": 1.0,
-    "avg_TCR_overall": 0.8477,
+    "avg_TCR_overall": 1.0,
     "avg_CED": 0.0,
     "avg_MER": null
   },
@@ -23,15 +23,19 @@
         }
       },
       "generated": {
-        "artefacts": 8,
+        "artefacts": 11,
         "spans_present": 10,
         "metrics_present": 11,
-        "logs_present": 0,
+        "logs_present": 4,
         "alerts_present": 4
       },
       "artefact_correctness": [
         {
           "file": "InventoryServiceInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "InventoryServiceLogs.java",
           "correct": true
         },
         {
@@ -43,11 +47,19 @@
           "correct": true
         },
         {
+          "file": "OrderServiceLogs.java",
+          "correct": true
+        },
+        {
           "file": "OrderServiceMetrics.java",
           "correct": true
         },
         {
           "file": "WebGatewayInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "WebGatewayLogs.java",
           "correct": true
         },
         {
@@ -65,18 +77,18 @@
       ],
       "metrics": {
         "CCR": 1.0,
-        "TCR_overall": 0.8621,
+        "TCR_overall": 1.0,
         "TCR_breakdown": {
           "spans": 1.0,
           "metrics": 1.0,
-          "logs": 0.0,
+          "logs": 1.0,
           "alerts": 1.0
         },
         "CED": 0.0,
         "MER": null
       },
       "timing_seconds": {
-        "T_generated": 0.009086,
+        "T_generated": 0.04332,
         "T_manual": null
       },
       "validation": {
@@ -99,15 +111,19 @@
         }
       },
       "generated": {
-        "artefacts": 4,
+        "artefacts": 5,
         "spans_present": 4,
         "metrics_present": 4,
-        "logs_present": 0,
+        "logs_present": 2,
         "alerts_present": 2
       },
       "artefact_correctness": [
         {
           "file": "PaymentServiceInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "PaymentServiceLogs.java",
           "correct": true
         },
         {
@@ -125,18 +141,18 @@
       ],
       "metrics": {
         "CCR": 1.0,
-        "TCR_overall": 0.8333,
+        "TCR_overall": 1.0,
         "TCR_breakdown": {
           "spans": 1.0,
           "metrics": 1.0,
-          "logs": 0.0,
+          "logs": 1.0,
           "alerts": 1.0
         },
         "CED": 0.0,
         "MER": null
       },
       "timing_seconds": {
-        "T_generated": 0.00799,
+        "T_generated": 0.004799,
         "T_manual": null
       },
       "validation": {

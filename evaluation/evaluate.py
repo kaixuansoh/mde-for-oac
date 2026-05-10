@@ -29,7 +29,8 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 from validate_instance import validate           # noqa: E402
 from generate import (                           # noqa: E402
     gen_span_instrumentation, gen_metric_registration,
-    gen_collector_yaml, gen_prometheus_alerts)
+    gen_collector_yaml, gen_prometheus_alerts,
+    gen_log_instrumentation)
 
 
 def _local(t): return t.split('}')[-1]
@@ -122,6 +123,7 @@ def evaluate_scenario(instance_path, generated_dir, manual_seconds=None):
     gen_metric_registration(model, out)
     gen_collector_yaml(model, out)
     gen_prometheus_alerts(model, out)
+    gen_log_instrumentation(model, out)
     t_generated = time.perf_counter() - t0
 
     artefacts = sorted(out.iterdir())
@@ -129,21 +131,21 @@ def evaluate_scenario(instance_path, generated_dir, manual_seconds=None):
     # Inventory the generated artefacts
     spans_present = 0
     metrics_present = 0
+    logs_present = 0
     alerts_present = 0
     instrumentation_files = [f for f in artefacts if f.name.endswith('Instrumentation.java')]
     metric_files          = [f for f in artefacts if f.name.endswith('Metrics.java')]
+    log_files             = [f for f in artefacts if f.name.endswith('Logs.java')]
     collector_file        = next((f for f in artefacts if f.name == 'otel-collector.yaml'), None)
     alerts_file           = next((f for f in artefacts if f.name == 'prometheus-alerts.yaml'), None)
     for f in instrumentation_files:
-        spans_present += count_java_methods(f.read_text())
+        spans_present += count_java_methods(f.read_text(), prefix='start')
     for f in metric_files:
         metrics_present += count_metric_fields(f.read_text())
+    for f in log_files:
+        logs_present += count_java_methods(f.read_text(), prefix='log')
     if alerts_file:
         alerts_present = count_alerts(alerts_file.read_text())
-
-    # Logs are declared in the model but our current templates do not emit
-    # log statements — flag this honestly rather than papering over it.
-    logs_present = 0
 
     # CCR — count correct artefacts
     artefact_results = []

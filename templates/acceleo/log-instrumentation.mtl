@@ -1,0 +1,102 @@
+[comment encoding=UTF-8 /]
+[**
+ * log-instrumentation.mtl
+ *
+ * Emits one Java class per Service exposing a structured-logging method
+ * for every Log entity declared in any of the service's
+ * InstrumentationScopes. Methods use the OpenTelemetry Java logs API
+ * (Logger / LogRecordBuilder) and translate the model's numeric
+ * severity to the corresponding OTel Severity enum literal (1..24
+ * mapped onto TRACE..FATAL with four sub-levels each).
+ *
+ * Source metamodel: http://dissertation.um.edu.my/observability/1.0
+ * Target runtime  : OpenTelemetry Java SDK (logs API)
+ */]
+[module logInstrumentation('http://dissertation.um.edu.my/observability/1.0')]
+
+[template public generate(model : ObservabilityModel)]
+[for (service : Service | model.services)]
+[file (service.name.concat('Logs.java'), false, 'UTF-8')]
+package [packageName(service)/];
+
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.logs.Logger;
+import io.opentelemetry.api.logs.Severity;
+
+/**
+ * Auto-generated OpenTelemetry log emitters for [service.name/].
+ * Generated from observability model — do not edit by hand.
+ */
+public final class [service.name/]Logs {
+
+[for (scope : InstrumentationScope | service.instrumentations)]
+    private static final Logger [loggerField(scope)/] =
+        OpenTelemetry.getGlobalOpenTelemetry()
+            .getLogsBridge()
+            .get("[scope.name/]");
+[/for]
+
+[for (scope : InstrumentationScope | service.instrumentations)]
+[for (log : Log | scope.logs)]
+    public void [logMethodName(log.body)/]() {
+        [loggerField(scope)/].logRecordBuilder()
+            .setSeverity(Severity.[severityEnum(log.severityNumber)/])[if (not log.severityText.oclIsUndefined())]
+            .setSeverityText("[log.severityText/]")[/if]
+            .setBody("[log.body/]")[for (a : Attribute | log.attributes)]
+            .setAttribute(AttributeKey.[attrKeyType(a)/]Key("[a.key/]"), [attrJavaLiteral(a)/])[/for]
+            .emit();
+    }
+
+[/for]
+[/for]
+}
+[/file]
+[/for]
+[/template]
+
+[query public packageName(service : Service) : String =
+    if service.namespace.oclIsUndefined() or service.namespace = ''
+    then 'com.acme.observability'
+    else service.namespace
+    endif/]
+
+[query public loggerField(scope : InstrumentationScope) : String =
+    scope.name.replaceAll('[^A-Za-z0-9]', '_').toUpper().concat('_LOGGER')/]
+
+[query public capWord(w : String) : String =
+    if w.size() = 0 then ''
+    else if w.size() = 1 then w.toUpper()
+    else w.substring(1,1).toUpper().concat(w.substring(2, w.size()).toLower())
+    endif endif/]
+
+[query public logMethodName(body : String) : String =
+    'log'.concat(
+        body.replaceAll('[^A-Za-z0-9 ]', '')
+            .split(' ')
+            ->iterate(w : String; acc : String = '' | acc.concat(capWord(w))))/]
+
+[**
+ * Maps an OTel-spec severity number (1..24) to the Java enum literal:
+ * 1..4 -> TRACE/TRACE2/TRACE3/TRACE4, 5..8 DEBUG..., 9..12 INFO...,
+ * 13..16 WARN..., 17..20 ERROR..., 21..24 FATAL...
+ */]
+[query public severityEnum(n : Integer) : String =
+    let base : String = Sequence{'TRACE','DEBUG','INFO','WARN','ERROR','FATAL'}->at(((n - 1) / 4) + 1) in
+    let sub : Integer = (n - 1).mod(4) in
+    if sub = 0 then base else base.concat((sub + 1).toString()) endif/]
+
+[query public attrKeyType(a : Attribute) : String =
+    if a.valueType = AttributeValueType::STRING  then 'string'
+    else if a.valueType = AttributeValueType::BOOLEAN then 'boolean'
+    else if a.valueType = AttributeValueType::LONG    then 'long'
+    else if a.valueType = AttributeValueType::DOUBLE  then 'double'
+    else 'string' endif endif endif endif/]
+
+[query public attrJavaLiteral(a : Attribute) : String =
+    if a.valueType = AttributeValueType::STRING  then '"'.concat(a.value).concat('"')
+    else if a.valueType = AttributeValueType::BOOLEAN then a.value
+    else if a.valueType = AttributeValueType::LONG    then a.value.concat('L')
+    else if a.valueType = AttributeValueType::DOUBLE  then a.value.concat('d')
+    else '"'.concat(a.value).concat('"')
+    endif endif endif endif/]

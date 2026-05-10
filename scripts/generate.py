@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Prototype model-to-text generator that mirrors the four Acceleo templates
+Prototype model-to-text generator that mirrors the five Acceleo templates
 under framework/templates/acceleo/. Produces the same artefacts the .mtl
 templates are intended to emit, so the generation logic can be exercised
 without an Eclipse + Acceleo runtime.
 
 Generation pipeline:
-    .observability  ->  parse + validate  ->  4 emitters  ->  artefacts/
+    .observability  ->  parse + validate  ->  5 emitters  ->  artefacts/
 
 Run:
     python3 generate.py <instance.observability> <output-dir>
@@ -32,6 +32,7 @@ def _xsi_type(elem): return (elem.get(XSI + 'type') or '').split(':')[-1]
 def _ident(s): return re.sub(r'[^A-Za-z0-9]', '_', s)
 def _tracer_field(scope_name): return _ident(scope_name).upper() + '_TRACER'
 def _meter_field(scope_name):  return _ident(scope_name).upper() + '_METER'
+def _logger_field(scope_name): return _ident(scope_name).upper() + '_LOGGER'
 def _metric_field(name):       return _ident(name)
 
 
@@ -341,6 +342,81 @@ def gen_prometheus_alerts(model, outdir):
 
 
 # --------------------------------------------------------------------------
+# 9e — log-instrumentation.mtl
+# --------------------------------------------------------------------------
+# OTel Severity enum literals: 1..4 -> TRACE/TRACE2/TRACE3/TRACE4,
+# 5..8 DEBUG..., 9..12 INFO..., 13..16 WARN..., 17..20 ERROR..., 21..24 FATAL...
+_SEVERITY_BASES = ('TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL')
+
+
+def _severity_enum(n):
+    n = int(n)
+    base = _SEVERITY_BASES[(n - 1) // 4]
+    sub = (n - 1) % 4
+    return base if sub == 0 else f'{base}{sub + 1}'
+
+
+def _log_method_name(body):
+    words = re.findall(r'[A-Za-z0-9]+', body or '')
+    return 'log' + ''.join(w[:1].upper() + w[1:].lower() for w in words)
+
+
+_ATTR_KEY_TYPE = {'STRING': 'string', 'BOOLEAN': 'boolean',
+                  'LONG': 'long', 'DOUBLE': 'double'}
+
+
+def gen_log_instrumentation(model, outdir):
+    for service in _kids(model, 'services'):
+        if not any(_kids(scope, 'logs') for scope in _kids(service, 'instrumentations')):
+            continue  # Skip services that declare no logs
+        cls = f"{service.get('name')}Logs"
+        out = outdir / f'{cls}.java'
+        L = []
+        L.append(f'package {_package_name(service)};')
+        L.append('')
+        L.append('import io.opentelemetry.api.OpenTelemetry;')
+        L.append('import io.opentelemetry.api.common.AttributeKey;')
+        L.append('import io.opentelemetry.api.logs.Logger;')
+        L.append('import io.opentelemetry.api.logs.Severity;')
+        L.append('')
+        L.append('/**')
+        L.append(f" * Auto-generated OpenTelemetry log emitters for {service.get('name')}.")
+        L.append(' * Generated from observability model — do not edit by hand.')
+        L.append(' */')
+        L.append(f'public final class {cls} {{')
+        L.append('')
+        for scope in _kids(service, 'instrumentations'):
+            sn = scope.get('name')
+            L.append(f'    private static final Logger {_logger_field(sn)} =')
+            L.append('        OpenTelemetry.getGlobalOpenTelemetry()')
+            L.append('            .getLogsBridge()')
+            L.append(f'            .get("{sn}");')
+        L.append('')
+        for scope in _kids(service, 'instrumentations'):
+            for log in _kids(scope, 'logs'):
+                method = _log_method_name(log.get('body'))
+                sev = _severity_enum(log.get('severityNumber'))
+                sev_text = log.get('severityText')
+                body = log.get('body').replace('"', '\\"')
+                attrs = _kids(log, 'attributes')
+                L.append(f'    public void {method}() {{')
+                L.append(f'        {_logger_field(scope.get("name"))}.logRecordBuilder()')
+                L.append(f'            .setSeverity(Severity.{sev})')
+                if sev_text:
+                    L.append(f'            .setSeverityText("{sev_text}")')
+                L.append(f'            .setBody("{body}")')
+                for a in attrs:
+                    kt = _ATTR_KEY_TYPE.get(a.get('valueType'), 'string')
+                    L.append(f'            .setAttribute(AttributeKey.{kt}Key("{a.get("key")}"), '
+                             f'{_attr_java_literal(a)})')
+                L.append('            .emit();')
+                L.append('    }')
+                L.append('')
+        L.append('}')
+        out.write_text('\n'.join(L))
+
+
+# --------------------------------------------------------------------------
 # Driver
 # --------------------------------------------------------------------------
 def main():
@@ -364,6 +440,7 @@ def main():
     gen_metric_registration(model, output_dir)
     gen_collector_yaml(model, output_dir)
     gen_prometheus_alerts(model, output_dir)
+    gen_log_instrumentation(model, output_dir)
     print(f'Generated {len(list(output_dir.iterdir()))} artefact(s) in {output_dir}')
 
 
