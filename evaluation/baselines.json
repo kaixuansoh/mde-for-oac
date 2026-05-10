@@ -9,5 +9,10 @@
     "T_manual_seconds": null,
     "protocol": null,
     "notes": null
+  },
+  "banking": {
+    "T_manual_seconds": null,
+    "protocol": null,
+    "notes": null
   }
 }
