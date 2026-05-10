@@ -1,0 +1,120 @@
+[comment encoding=UTF-8 /]
+[**
+ * collector-yaml.mtl
+ *
+ * Emits a single OpenTelemetry Collector YAML configuration file.
+ * Each TelemetryPipeline becomes a `service.pipelines.<signal>` block.
+ * Receivers, processors, and exporters are emitted top-level with
+ * unique keys suffixed by their owning pipeline (e.g. otlp/traces),
+ * matching the Collector's component-aliasing convention.
+ *
+ * Source metamodel: http://dissertation.um.edu.my/observability/1.0
+ * Target runtime  : OpenTelemetry Collector (otelcol-contrib)
+ */]
+[module collectorYaml('http://dissertation.um.edu.my/observability/1.0')]
+
+[template public generate(model : ObservabilityModel)]
+[file ('otel-collector.yaml', false, 'UTF-8')]
+# Auto-generated OpenTelemetry Collector configuration
+# Generated from: [model.name/] v[model.version/]
+
+receivers:
+[for (p : TelemetryPipeline | model.pipelines)]
+[for (r : Receiver | p.receivers)]
+  [r.name/]/[signalSlug(p)/]:
+[receiverBody(r)/]
+[/for]
+[/for]
+
+processors:
+[for (p : TelemetryPipeline | model.pipelines)]
+[for (pr : Processor | p.processors)]
+  [pr.name/]/[signalSlug(p)/]:
+[processorBody(pr)/]
+[/for]
+[/for]
+
+exporters:
+[for (p : TelemetryPipeline | model.pipelines)]
+[for (e : Exporter | p.exporters)]
+  [e.name/]/[signalSlug(p)/]:
+[exporterBody(e)/]
+[/for]
+[/for]
+
+service:
+  pipelines:
+[for (p : TelemetryPipeline | model.pipelines)]
+    [signalSlug(p)/]:
+      receivers: [[for (r : Receiver | p.receivers) separator (', ')][r.name/]/[signalSlug(p)/][/for]]
+      processors: [[for (pr : Processor | p.processors) separator (', ')][pr.name/]/[signalSlug(p)/][/for]]
+      exporters: [[for (e : Exporter | p.exporters) separator (', ')][e.name/]/[signalSlug(p)/][/for]]
+[/for]
+[/file]
+[/template]
+
+[query public signalSlug(p : TelemetryPipeline) : String =
+    if p.signal = SignalType::TRACES then 'traces'
+    else if p.signal = SignalType::METRICS then 'metrics'
+    else 'logs' endif endif/]
+
+[query public protocolKey(r : Receiver) : String =
+    if r.protocol = Protocol::GRPC then 'grpc'
+    else if r.protocol = Protocol::HTTP_PROTOBUF then 'http'
+    else 'http' endif endif/]
+
+[query public receiverBody(r : Receiver) : String =
+    if r.oclIsKindOf(OtlpReceiver) then
+        '    protocols:\n      '.concat(protocolKey(r)).concat(':\n        endpoint: ').concat(r.endpoint)
+    else if r.oclIsKindOf(JaegerReceiver) then
+        '    protocols:\n      '.concat(protocolKey(r)).concat(':\n        endpoint: ').concat(r.endpoint)
+    else if r.oclIsKindOf(PrometheusReceiver) then
+        '    config:\n      scrape_configs:\n        - job_name: ''otel''\n          static_configs:\n            - targets: [''').concat(r.endpoint).concat(''']')
+    else '    endpoint: '.concat(r.endpoint) endif endif endif/]
+
+[query public processorBody(pr : Processor) : String =
+    if pr.oclIsKindOf(BatchProcessor) then
+        '    timeout: '.concat(pr.oclAsType(BatchProcessor).timeout).concat('\n    send_batch_size: ').concat(pr.oclAsType(BatchProcessor).maxBatchSize.toString())
+    else if pr.oclIsKindOf(MemoryLimiterProcessor) then
+        '    check_interval: 1s\n    limit_mib: '.concat(pr.oclAsType(MemoryLimiterProcessor).limitMiB.toString()).concat('\n    spike_limit_mib: ').concat(pr.oclAsType(MemoryLimiterProcessor).spikeLimitMiB.toString())
+    else if pr.oclIsKindOf(AttributesProcessor) then
+        attributesProcessorBody(pr.oclAsType(AttributesProcessor))
+    else if pr.oclIsKindOf(TailSamplingProcessor) then
+        tailSamplingBody(pr.oclAsType(TailSamplingProcessor))
+    else '    {}' endif endif endif endif/]
+
+[query public attributesProcessorBody(ap : AttributesProcessor) : String =
+    '    actions:\n'.concat(
+      ap.actions->iterate(a : AttributeAction; acc : String = '' |
+        acc.concat('      - key: ').concat(a.key)
+           .concat('\n        action: ').concat(a.action.toString().toLower())
+           .concat(if a.value.oclIsUndefined() then '' else '\n        value: '.concat(a.value) endif)
+           .concat('\n')))/]
+
+[query public tailSamplingBody(t : TailSamplingProcessor) : String =
+    '    decision_wait: '.concat(t.decisionWait).concat('\n    policies:\n').concat(
+      t.policies->iterate(p : SamplingPolicy; acc : String = '' |
+        acc.concat('      - name: ').concat(p.name)
+           .concat('\n        type: ').concat(p.type.toString().toLower())
+           .concat(if p.value.oclIsUndefined() then '' else policyValueBody(p) endif)
+           .concat('\n')))/]
+
+[query public policyValueBody(p : SamplingPolicy) : String =
+    if p.type = PolicyType::PROBABILISTIC then
+        '\n        probabilistic:\n          sampling_percentage: '.concat((p.value.toReal() * 100.0).toString())
+    else if p.type = PolicyType::STATUS_CODE then
+        '\n        status_code:\n          status_codes: ['.concat(p.value).concat(']')
+    else if p.type = PolicyType::STRING_ATTRIBUTE then
+        '\n        string_attribute:\n          values: ['.concat(p.value).concat(']')
+    else '' endif endif endif/]
+
+[query public exporterBody(e : Exporter) : String =
+    if e.oclIsKindOf(OtlpExporter) then
+        '    endpoint: '.concat(e.endpoint).concat(if e.compression.oclIsUndefined() then '' else '\n    compression: '.concat(e.compression) endif).concat('\n    tls:\n      insecure: true')
+    else if e.oclIsKindOf(PrometheusExporter) then
+        '    endpoint: '.concat(e.endpoint)
+    else if e.oclIsKindOf(JaegerExporter) then
+        '    endpoint: '.concat(e.endpoint).concat('\n    tls:\n      insecure: true')
+    else if e.oclIsKindOf(LoggingExporter) then
+        '    loglevel: info'
+    else '    endpoint: '.concat(e.endpoint) endif endif endif endif/]

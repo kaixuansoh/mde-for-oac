@@ -1,0 +1,105 @@
+[comment encoding=UTF-8 /]
+[**
+ * metric-registration.mtl
+ *
+ * Emits one Java class per Service that constructs every Metric
+ * defined in the model using the OpenTelemetry Meter API. The
+ * MetricType determines which builder is invoked (LongCounter,
+ * DoubleHistogram, etc.) and ValueType determines the numeric width.
+ *
+ * Source metamodel: http://dissertation.um.edu.my/observability/1.0
+ * Target runtime  : OpenTelemetry Java SDK (Meter API)
+ */]
+[module metricRegistration('http://dissertation.um.edu.my/observability/1.0')]
+
+[template public generate(model : ObservabilityModel)]
+[for (service : Service | model.services)]
+[file (service.name.concat('Metrics.java'), false, 'UTF-8')]
+package [packageName(service)/];
+
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.metrics.DoubleCounter;
+import io.opentelemetry.api.metrics.DoubleGauge;
+import io.opentelemetry.api.metrics.DoubleHistogram;
+import io.opentelemetry.api.metrics.DoubleUpDownCounter;
+import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.LongHistogram;
+import io.opentelemetry.api.metrics.LongUpDownCounter;
+import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.ObservableLongCounter;
+import io.opentelemetry.api.metrics.ObservableLongGauge;
+import io.opentelemetry.api.metrics.ObservableLongUpDownCounter;
+import io.opentelemetry.api.metrics.ObservableDoubleCounter;
+import io.opentelemetry.api.metrics.ObservableDoubleGauge;
+import io.opentelemetry.api.metrics.ObservableDoubleUpDownCounter;
+
+/**
+ * Auto-generated OpenTelemetry metric registry for [service.name/].
+ * Generated from observability model — do not edit by hand.
+ */
+public final class [service.name/]Metrics {
+
+[for (scope : InstrumentationScope | service.instrumentations)]
+    private static final Meter [meterField(scope)/] =
+        OpenTelemetry.getGlobalOpenTelemetry()
+            .getMeter("[scope.name/]");
+[/for]
+
+[for (scope : InstrumentationScope | service.instrumentations)]
+[for (m : Metric | scope.metrics)]
+    public final [javaType(m)/] [metricField(m)/] = [meterField(scope)/]
+        .[builderCall(m)/]
+        .setUnit("[m.unit/]")[if (not m.description.oclIsUndefined())]
+        .setDescription("[m.description/]")[/if][if (m.type = MetricType::HISTOGRAM and m.aggregation = AggregationType::EXPLICIT_BUCKET_HISTOGRAM)]
+        .setExplicitBucketBoundariesAdvice(java.util.List.of(5.0, 10.0, 25.0, 50.0, 100.0, 250.0, 500.0, 1000.0, 2500.0, 5000.0, 10000.0))[/if]
+        .build();
+
+[/for]
+[/for]
+}
+[/file]
+[/for]
+[/template]
+
+[query public packageName(service : Service) : String =
+    if service.namespace.oclIsUndefined() or service.namespace = ''
+    then 'com.acme.observability'
+    else service.namespace
+    endif/]
+
+[query public meterField(scope : InstrumentationScope) : String =
+    scope.name.replaceAll('[^A-Za-z0-9]', '_').toUpper().concat('_METER')/]
+
+[query public metricField(m : Metric) : String =
+    m.name.replaceAll('[^A-Za-z0-9]', '_')/]
+
+[query public javaType(m : Metric) : String =
+    if m.type = MetricType::COUNTER then
+        if m.valueType = ValueType::LONG then 'LongCounter' else 'DoubleCounter' endif
+    else if m.type = MetricType::UP_DOWN_COUNTER then
+        if m.valueType = ValueType::LONG then 'LongUpDownCounter' else 'DoubleUpDownCounter' endif
+    else if m.type = MetricType::HISTOGRAM then
+        if m.valueType = ValueType::LONG then 'LongHistogram' else 'DoubleHistogram' endif
+    else if m.type = MetricType::GAUGE then
+        if m.valueType = ValueType::LONG then 'LongGauge' else 'DoubleGauge' endif
+    else if m.type = MetricType::OBSERVABLE_COUNTER then
+        if m.valueType = ValueType::LONG then 'ObservableLongCounter' else 'ObservableDoubleCounter' endif
+    else if m.type = MetricType::OBSERVABLE_UP_DOWN_COUNTER then
+        if m.valueType = ValueType::LONG then 'ObservableLongUpDownCounter' else 'ObservableDoubleUpDownCounter' endif
+    else
+        if m.valueType = ValueType::LONG then 'ObservableLongGauge' else 'ObservableDoubleGauge' endif
+    endif endif endif endif endif endif/]
+
+[query public builderCall(m : Metric) : String =
+    if m.type = MetricType::COUNTER then
+        'counterBuilder("'.concat(m.name).concat('")').concat(if m.valueType = ValueType::DOUBLE then '.ofDoubles()' else '' endif)
+    else if m.type = MetricType::UP_DOWN_COUNTER then
+        'upDownCounterBuilder("'.concat(m.name).concat('")').concat(if m.valueType = ValueType::DOUBLE then '.ofDoubles()' else '' endif)
+    else if m.type = MetricType::HISTOGRAM then
+        'histogramBuilder("'.concat(m.name).concat('")').concat(if m.valueType = ValueType::LONG then '.ofLongs()' else '' endif)
+    else if m.type = MetricType::GAUGE then
+        'gaugeBuilder("'.concat(m.name).concat('")').concat(if m.valueType = ValueType::LONG then '.ofLongs()' else '' endif)
+    else
+        'counterBuilder("'.concat(m.name).concat('")')
+    endif endif endif endif/]

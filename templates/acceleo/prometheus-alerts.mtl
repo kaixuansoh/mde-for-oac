@@ -1,0 +1,36 @@
+[comment encoding=UTF-8 /]
+[**
+ * prometheus-alerts.mtl
+ *
+ * Emits a single Prometheus alerting-rules file. AlertRule entities
+ * become rules under one rule group named after the source model.
+ * Severity, labels, and annotations are passed through; the
+ * referenced metric's name is interpolated when the expression
+ * contains the placeholder {{metric}}.
+ *
+ * Source metamodel: http://dissertation.um.edu.my/observability/1.0
+ * Target runtime  : Prometheus / AlertManager
+ */]
+[module prometheusAlerts('http://dissertation.um.edu.my/observability/1.0')]
+
+[template public generate(model : ObservabilityModel)]
+[file ('prometheus-alerts.yaml', false, 'UTF-8')]
+# Auto-generated Prometheus alerting rules
+# Generated from: [model.name/] v[model.version/]
+
+groups:
+  - name: [model.name/]
+    rules:
+[for (ar : AlertRule | model.alertRules)]
+      - alert: [ar.name/]
+        expr: [ar.expression/]
+        for: [ar.forDuration/]
+        labels:
+          severity: [ar.severity.toString().toLower()/][for (l : Attribute | ar.labels)]
+          [l.key/]: "[l.value/]"[/for]
+        annotations:[if (not ar.description.oclIsUndefined())]
+          description: "[ar.description/]"[/if][for (a : Attribute | ar.annotations)]
+          [a.key/]: "[a.value/]"[/for]
+[/for]
+[/file]
+[/template]

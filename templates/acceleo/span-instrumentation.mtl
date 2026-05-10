@@ -1,0 +1,89 @@
+[comment encoding=UTF-8 /]
+[**
+ * span-instrumentation.mtl
+ *
+ * Model-to-Text transformation: emits one Java class per Service
+ * containing a static Tracer per InstrumentationScope and a factory
+ * method per Span. Mirrors the §3.3.4 dissertation example, generalised
+ * to handle parent-child links, span events, and typed attributes.
+ *
+ * Source metamodel: http://dissertation.um.edu.my/observability/1.0
+ * Target runtime  : OpenTelemetry Java SDK
+ */]
+[module spanInstrumentation('http://dissertation.um.edu.my/observability/1.0')]
+
+[template public generate(model : ObservabilityModel)]
+[for (service : Service | model.services)]
+[file (service.name.concat('Instrumentation.java'), false, 'UTF-8')]
+package [packageName(service)/];
+
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanBuilder;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
+
+/**
+ * Auto-generated OpenTelemetry instrumentation for [service.name/].
+ * Generated from observability model — do not edit by hand.
+ */
+public final class [service.name/]Instrumentation {
+
+[for (scope : InstrumentationScope | service.instrumentations)]
+    private static final Tracer [tracerField(scope)/] =
+        OpenTelemetry.getGlobalOpenTelemetry()
+            .getTracer("[scope.name/]"[if (not scope.version.oclIsUndefined())], "[scope.version/]"[/if]);
+[/for]
+
+[for (scope : InstrumentationScope | service.instrumentations)]
+[for (sp : Span | scope.spans)]
+    public Span start[sp.name/]([if (not sp.parentSpan.oclIsUndefined())]Context parentContext[/if]) {
+        SpanBuilder builder = [tracerField(scope)/]
+            .spanBuilder("[sp.name/]")
+            .setSpanKind(SpanKind.[sp.kind/])[if (not sp.parentSpan.oclIsUndefined())]
+            .setParent(parentContext)[/if];
+[for (a : Attribute | sp.attributes)]
+        builder.setAttribute("[a.key/]", [attrJavaLiteral(a)/]);
+[/for]
+        Span span = builder.startSpan();
+[for (e : SpanEvent | sp.events)]
+        span.addEvent("[e.name/]"[if (e.attributes->notEmpty())], Attributes.builder()[for (a : Attribute | e.attributes)]
+            .put("[a.key/]", [attrJavaLiteral(a)/])[/for]
+            .build()[/if]);
+[/for]
+[if (not sp.statusCode.oclIsUndefined() and sp.statusCode <> StatusCode::UNSET)]
+        span.setStatus(StatusCode.[sp.statusCode/]);
+[/if]
+        return span;
+    }
+
+[/for]
+[/for]
+}
+[/file]
+[/for]
+[/template]
+
+[query public packageName(service : Service) : String =
+    if service.namespace.oclIsUndefined() or service.namespace = ''
+    then 'com.acme.observability'
+    else service.namespace
+    endif/]
+
+[query public tracerField(scope : InstrumentationScope) : String =
+    scope.name.replaceAll('[^A-Za-z0-9]', '_').toUpper().concat('_TRACER')/]
+
+[query public attrJavaLiteral(a : Attribute) : String =
+    if a.valueType = AttributeValueType::STRING
+    then '"'.concat(a.value).concat('"')
+    else if a.valueType = AttributeValueType::BOOLEAN
+    then a.value
+    else if a.valueType = AttributeValueType::LONG
+    then a.value.concat('L')
+    else if a.valueType = AttributeValueType::DOUBLE
+    then a.value.concat('d')
+    else '"'.concat(a.value).concat('"')
+    endif endif endif endif/]
