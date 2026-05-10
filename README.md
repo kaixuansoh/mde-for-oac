@@ -20,7 +20,7 @@ M0  Java OTel SDK + Collector YAML + Prometheus      ← generated artefacts
         + actual telemetry at runtime
 ```
 
-A user authors one **M1 instance** describing their services, signals, pipelines, and alerts. The framework validates the instance against the metamodel (including 20 OCL semantic invariants), then runs four model-to-text transformations to produce all M0 artefacts deterministically.
+A user authors one **M1 instance** describing their services, signals, pipelines, and alerts. The framework validates the instance against the metamodel (including 20 OCL semantic invariants), then runs five model-to-text transformations to produce all M0 artefacts deterministically.
 
 ## Repository contents
 
@@ -30,25 +30,38 @@ A user authors one **M1 instance** describing their services, signals, pipelines
 │                                            27 EClasses, 13 EEnums, 20 OCL invariants
 │
 ├── examples/                                Sample .observability instance models
-│   ├── payment-service.observability        Single-service scenario (66 nodes)
-│   └── ecommerce.observability              Three-service slice (87 nodes)
+│   ├── payment-service.observability        Single-service scenario   ( 66 nodes)
+│   ├── ecommerce.observability              Three-service slice       ( 87 nodes)
+│   └── banking.observability                Six-service banking slice (151 nodes)
 │
 ├── templates/acceleo/                       OMG-standard model-to-text templates
 │   ├── span-instrumentation.mtl             → Java OTel Tracer/Span builders
 │   ├── metric-registration.mtl              → Java OTel Meter API
+│   ├── log-instrumentation.mtl              → Java OTel logs API
 │   ├── collector-yaml.mtl                   → OpenTelemetry Collector YAML
 │   └── prometheus-alerts.mtl                → Prometheus alerting rules
 │
-├── scripts/
+├── scripts/                                 Python prototype runtime
 │   ├── validate_instance.py                 Structural + OCL validator
-│   └── generate.py                          Python prototype mirroring the .mtl templates
+│   └── generate.py                          Python emitter mirroring the .mtl templates
 │
-├── generated/                               Reference outputs from generate.py
-│   ├── payment-service/                     4 artefacts, 225 lines
-│   └── ecommerce/                           8 artefacts, 354 lines
+├── jvm/                                     JVM runtime (Maven, EMF, picocli)
+│   ├── model/                               EMF bootstrap + Java validator
+│   ├── generator/                           Five Emitter implementations
+│   └── cli/                                 obs-generate command-line entry point
+│
+├── generated/                               Reference outputs
+│   ├── payment-service/                     5 artefacts
+│   ├── ecommerce/                           11 artefacts
+│   └── banking/                             20 artefacts
+│
+├── baselines/                               Hand-authored OaC for MER comparison
+│   ├── README.md                            Capture protocols (A / B / C)
+│   └── manual/<scenario>/                   Functional equivalents of generated/
 │
 └── evaluation/                              Phase III evaluation
     ├── evaluate.py                          CCR / TCR / CED / MER harness
+    ├── baselines.json                       Per-scenario T_manual values
     └── results/evaluation.json              Latest run
 ```
 
@@ -60,11 +73,23 @@ Twenty OCL invariants enforce semantic correctness — for example, alert rules 
 
 ### Validator
 
-`scripts/validate_instance.py` is a standalone validator that loads the metamodel and any `.observability` instance and checks XML well-formedness, class / feature / enum-literal coverage, cardinality bounds, cross-reference resolution, and every OCL invariant. It returns errors (must fix) and warnings separately, without requiring an Eclipse runtime.
+Two implementations re-implement the same checks against the same metamodel:
+
+- `scripts/validate_instance.py` — zero-dependency Python; validates XML well-formedness, class / feature / enum-literal coverage, cardinality bounds, cross-reference resolution, and every OCL invariant.
+- `jvm/model/.../Validator.java` — JVM-side equivalent built on EMF; same diagnostic output (errors must fix, warnings informational), no OCL evaluator on the classpath.
 
 ### Generator
 
-The four `.mtl` templates under `templates/acceleo/` are the canonical Phase II artefacts: OMG-standard model-to-text transformations covering Java span instrumentation, Java metric registration, Collector YAML, and Prometheus alerting rules. `scripts/generate.py` is a Python prototype that mirrors the same logic so the pipeline runs end-to-end without an Eclipse + Acceleo runtime. The generator runs the validator first and refuses to emit if the source model has any error-tier violations.
+The five `.mtl` templates under `templates/acceleo/` are the canonical Phase II artefacts: OMG-standard model-to-text transformations covering Java span instrumentation, Java metric registration, Java log emission, Collector YAML, and Prometheus alerting rules. Two runtimes execute the same logic:
+
+- `scripts/generate.py` — Python prototype, useful for environments without a JDK.
+- `jvm/cli/obs-generate.jar` — shaded executable JAR built from the Maven multi-module project. Outputs are byte-identical to the Python prototype modulo trailing newlines.
+
+Both runtimes validate the source model first and refuse to emit if any error-tier OCL invariant fails.
+
+### Manual baselines
+
+`baselines/manual/<scenario>/` contains hand-authored OaC artefacts functionally equivalent to what the framework generates — the basis for measuring `T_manual` in the **Manual Effort Reduction** metric. `baselines/README.md` documents three capture protocols (direct authoring, researcher self-timing, model-based estimation) so the timing data has a defensible methodology.
 
 ### Evaluation harness
 
@@ -77,9 +102,11 @@ The four `.mtl` templates under `templates/acceleo/` are the canonical Phase II 
 | **CED** — Configuration Error Density    | `N_errors / N_entities` |
 | **MER** — Manual Effort Reduction        | `(T_manual − T_generated) / T_manual` |
 
+The harness auto-loads `evaluation/baselines.json`; MER is reported per scenario only if a `T_manual_seconds` value is present.
+
 ## Quickstart
 
-Requires Python 3.9+ and PyYAML.
+### Python prototype (zero dependencies beyond `PyYAML`)
 
 ```bash
 # 1. Validate an instance against the metamodel
@@ -92,3 +119,18 @@ python3 scripts/generate.py examples/payment-service.observability \
 # 3. Run the full evaluation across all scenarios
 python3 evaluation/evaluate.py
 ```
+
+### JVM runtime (Java 21 + Maven)
+
+```bash
+# Build the shaded executable JAR
+cd jvm && mvn package -DskipTests
+
+# Validate + generate
+java -jar jvm/cli/target/obs-generate.jar \
+     --metamodel metamodel/model/observability.ecore \
+     examples/banking.observability \
+     out/banking
+```
+
+CLI flags: `--validate-only`, `--strict` (treat warnings as errors), `--metamodel <path>`, `--help`.
