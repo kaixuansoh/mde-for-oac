@@ -1,0 +1,148 @@
+{
+  "generated_at": "2026-05-08T15:59:45Z",
+  "summary": {
+    "scenarios": 2,
+    "avg_CCR": 1.0,
+    "avg_TCR_overall": 0.8477,
+    "avg_CED": 0.0,
+    "avg_MER": null
+  },
+  "scenarios": [
+    {
+      "scenario": "ecommerce",
+      "instance": "/Users/kaixuan.soh/Downloads/dissertation/framework/examples/ecommerce.observability",
+      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/framework/generated/ecommerce",
+      "source_model": {
+        "services": 3,
+        "pipelines": 3,
+        "required": {
+          "spans": 10,
+          "metrics": 11,
+          "logs": 4,
+          "alerts": 4
+        }
+      },
+      "generated": {
+        "artefacts": 8,
+        "spans_present": 10,
+        "metrics_present": 11,
+        "logs_present": 0,
+        "alerts_present": 4
+      },
+      "artefact_correctness": [
+        {
+          "file": "InventoryServiceInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "InventoryServiceMetrics.java",
+          "correct": true
+        },
+        {
+          "file": "OrderServiceInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "OrderServiceMetrics.java",
+          "correct": true
+        },
+        {
+          "file": "WebGatewayInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "WebGatewayMetrics.java",
+          "correct": true
+        },
+        {
+          "file": "otel-collector.yaml",
+          "correct": true
+        },
+        {
+          "file": "prometheus-alerts.yaml",
+          "correct": true
+        }
+      ],
+      "metrics": {
+        "CCR": 1.0,
+        "TCR_overall": 0.8621,
+        "TCR_breakdown": {
+          "spans": 1.0,
+          "metrics": 1.0,
+          "logs": 0.0,
+          "alerts": 1.0
+        },
+        "CED": 0.0,
+        "MER": null
+      },
+      "timing_seconds": {
+        "T_generated": 0.009086,
+        "T_manual": null
+      },
+      "validation": {
+        "source_model_errors": 0,
+        "source_model_warnings": 0
+      }
+    },
+    {
+      "scenario": "payment-service",
+      "instance": "/Users/kaixuan.soh/Downloads/dissertation/framework/examples/payment-service.observability",
+      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/framework/generated/payment-service",
+      "source_model": {
+        "services": 1,
+        "pipelines": 3,
+        "required": {
+          "spans": 4,
+          "metrics": 4,
+          "logs": 2,
+          "alerts": 2
+        }
+      },
+      "generated": {
+        "artefacts": 4,
+        "spans_present": 4,
+        "metrics_present": 4,
+        "logs_present": 0,
+        "alerts_present": 2
+      },
+      "artefact_correctness": [
+        {
+          "file": "PaymentServiceInstrumentation.java",
+          "correct": true
+        },
+        {
+          "file": "PaymentServiceMetrics.java",
+          "correct": true
+        },
+        {
+          "file": "otel-collector.yaml",
+          "correct": true
+        },
+        {
+          "file": "prometheus-alerts.yaml",
+          "correct": true
+        }
+      ],
+      "metrics": {
+        "CCR": 1.0,
+        "TCR_overall": 0.8333,
+        "TCR_breakdown": {
+          "spans": 1.0,
+          "metrics": 1.0,
+          "logs": 0.0,
+          "alerts": 1.0
+        },
+        "CED": 0.0,
+        "MER": null
+      },
+      "timing_seconds": {
+        "T_generated": 0.00799,
+        "T_manual": null
+      },
+      "validation": {
+        "source_model_errors": 0,
+        "source_model_warnings": 0
+      }
+    }
+  ]
+}
