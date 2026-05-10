@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Three-service e-commerce scenario.
+  Demonstrates cross-service observability: WebGateway routes traffic to
+  OrderService, which in turn calls InventoryService. Pipelines are shared
+  across services (single Collector deployment), and alert rules cross-cut
+  metrics produced by multiple services.
+
+  Service 0: WebGateway       (public HTTP entry point)
+  Service 1: OrderService     (order processing, calls inventory)
+  Service 2: InventoryService (stock management)
+-->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="ecommerce-observability"
+    version="1.0.0">
+
+  <!-- Service 0: WebGateway -->
+  <services
+      name="WebGateway"
+      namespace="com.acme.gateway"
+      version="2.1.0"
+      environment="production"
+      language="JAVA">
+    <resourceAttributes key="service.name"           valueType="STRING" value="WebGateway"     semanticConvention="service.name"/>
+    <resourceAttributes key="service.namespace"      valueType="STRING" value="com.acme"       semanticConvention="service.namespace"/>
+    <resourceAttributes key="service.version"        valueType="STRING" value="2.1.0"          semanticConvention="service.version"/>
+    <resourceAttributes key="deployment.environment" valueType="STRING" value="production"     semanticConvention="deployment.environment"/>
+    <sampler type="PARENT_BASED" ratio="0.05"/>
+    <instrumentations name="com.acme.gateway" version="2.1.0">
+      <spans name="HandleRequest" kind="SERVER">
+        <attributes key="http.request.method" valueType="STRING" value="GET"          semanticConvention="http.request.method"/>
+        <attributes key="http.route"          valueType="STRING" value="/api/{path}"  semanticConvention="http.route"/>
+      </spans>
+      <spans name="AuthCheck" kind="INTERNAL" statusCode="OK"
+             parentSpan="//@services.0/@instrumentations.0/@spans.0">
+        <attributes key="component" valueType="STRING" value="auth"/>
+      </spans>
+      <spans name="RouteToOrders" kind="CLIENT"
+             parentSpan="//@services.0/@instrumentations.0/@spans.0">
+        <attributes key="net.peer.name"    valueType="STRING" value="order-service" semanticConvention="net.peer.name"/>
+        <attributes key="rpc.system"       valueType="STRING" value="grpc"          semanticConvention="rpc.system"/>
+      </spans>
+      <spans name="RouteToCatalog" kind="CLIENT"
+             parentSpan="//@services.0/@instrumentations.0/@spans.0">
+        <attributes key="net.peer.name" valueType="STRING" value="catalog-service" semanticConvention="net.peer.name"/>
+      </spans>
+      <metrics name="gateway.requests.total" type="COUNTER"   unit="1"  valueType="LONG"   description="Total gateway requests handled"/>
+      <metrics name="gateway.duration"       type="HISTOGRAM" unit="ms" valueType="DOUBLE" aggregation="EXPLICIT_BUCKET_HISTOGRAM" description="Gateway request latency"/>
+      <metrics name="gateway.5xx.total"      type="COUNTER"   unit="1"  valueType="LONG"   description="Server-side error responses"/>
+      <metrics name="gateway.4xx.total"      type="COUNTER"   unit="1"  valueType="LONG"   description="Client-side error responses"/>
+      <logs severityNumber="17" severityText="ERROR" body="Upstream service unavailable" correlateToSpan="true">
+        <attributes key="upstream" valueType="STRING" value="order-service"/>
+      </logs>
+      <logs severityNumber="9" severityText="INFO" body="Request handled successfully" correlateToSpan="true"/>
+    </instrumentations>
+  </services>
+
+  <!-- Service 1: OrderService -->
+  <services
+      name="OrderService"
+      namespace="com.acme.orders"
+      version="1.3.0"
+      environment="production"
+      language="JAVA">
+    <resourceAttributes key="service.name"           valueType="STRING" value="OrderService"   semanticConvention="service.name"/>
+    <resourceAttributes key="deployment.environment" valueType="STRING" value="production"     semanticConvention="deployment.environment"/>
+    <sampler type="PARENT_BASED" ratio="0.1"/>
+    <instrumentations name="com.acme.orders" version="1.3.0">
+      <spans name="CreateOrder" kind="SERVER">
+        <attributes key="http.request.method" valueType="STRING" value="POST"      semanticConvention="http.request.method"/>
+        <attributes key="http.route"          valueType="STRING" value="/orders"   semanticConvention="http.route"/>
+      </spans>
+      <spans name="ValidateInventory" kind="CLIENT"
+             parentSpan="//@services.1/@instrumentations.0/@spans.0">
+        <attributes key="net.peer.name" valueType="STRING" value="inventory-service" semanticConvention="net.peer.name"/>
+        <attributes key="rpc.system"    valueType="STRING" value="grpc"              semanticConvention="rpc.system"/>
+      </spans>
+      <spans name="ChargePayment" kind="CLIENT"
+             parentSpan="//@services.1/@instrumentations.0/@spans.0">
+        <attributes key="net.peer.name" valueType="STRING" value="payment-gateway" semanticConvention="net.peer.name"/>
+      </spans>
+      <spans name="PersistOrder" kind="INTERNAL"
+             parentSpan="//@services.1/@instrumentations.0/@spans.0">
+        <attributes key="db.system"    valueType="STRING" value="postgresql" semanticConvention="db.system"/>
+        <attributes key="db.operation" valueType="STRING" value="INSERT"     semanticConvention="db.operation"/>
+      </spans>
+      <metrics name="orders.created.total" type="COUNTER"          unit="1"  valueType="LONG"   description="Successfully created orders"/>
+      <metrics name="orders.failed.total"  type="COUNTER"          unit="1"  valueType="LONG"   description="Failed order attempts"/>
+      <metrics name="order.duration"       type="HISTOGRAM"        unit="ms" valueType="DOUBLE" aggregation="EXPLICIT_BUCKET_HISTOGRAM" description="End-to-end order creation latency"/>
+      <metrics name="orders.pending"       type="UP_DOWN_COUNTER"  unit="1"  valueType="LONG"   description="In-flight orders awaiting processing"/>
+      <logs severityNumber="17" severityText="ERROR" body="Failed to validate inventory" correlateToSpan="true">
+        <attributes key="error.type" valueType="STRING" value="upstream_failure"/>
+      </logs>
+    </instrumentations>
+  </services>
+
+  <!-- Service 2: InventoryService -->
+  <services
+      name="InventoryService"
+      namespace="com.acme.inventory"
+      version="1.0.0"
+      environment="production"
+      language="JAVA">
+    <resourceAttributes key="service.name"           valueType="STRING" value="InventoryService" semanticConvention="service.name"/>
+    <resourceAttributes key="deployment.environment" valueType="STRING" value="production"       semanticConvention="deployment.environment"/>
+    <instrumentations name="com.acme.inventory" version="1.0.0">
+      <spans name="CheckStock" kind="SERVER">
+        <attributes key="rpc.system"  valueType="STRING" value="grpc"        semanticConvention="rpc.system"/>
+        <attributes key="rpc.service" valueType="STRING" value="Inventory"   semanticConvention="rpc.service"/>
+      </spans>
+      <spans name="QueryStockDB" kind="CLIENT"
+             parentSpan="//@services.2/@instrumentations.0/@spans.0">
+        <attributes key="db.system"    valueType="STRING" value="postgresql" semanticConvention="db.system"/>
+        <attributes key="db.operation" valueType="STRING" value="SELECT"     semanticConvention="db.operation"/>
+      </spans>
+      <metrics name="stock.queries.total"     type="COUNTER" unit="1" valueType="LONG"   description="Total stock-check queries"/>
+      <metrics name="stock.level"             type="GAUGE"   unit="1" valueType="LONG"   description="Current stock units in inventory"/>
+      <metrics name="inventory.errors.total"  type="COUNTER" unit="1" valueType="LONG"   description="Inventory query failures"/>
+      <logs severityNumber="13" severityText="WARN" body="Low stock threshold breached" correlateToSpan="true">
+        <attributes key="threshold" valueType="LONG" value="10"/>
+      </logs>
+    </instrumentations>
+  </services>
+
+  <!-- Shared TRACES pipeline -->
+  <pipelines name="traces-pipeline" signal="TRACES">
+    <receivers xsi:type="obs:OtlpReceiver" name="otlp" protocol="GRPC" endpoint="0.0.0.0:4317"/>
+    <processors xsi:type="obs:MemoryLimiterProcessor" name="memory_limiter"
+                limitMiB="512" spikeLimitMiB="128"/>
+    <processors xsi:type="obs:BatchProcessor" name="batch"
+                timeout="5s" maxBatchSize="512"/>
+    <exporters xsi:type="obs:OtlpExporter" name="otlp" endpoint="otel-collector:4317" compression="gzip"/>
+  </pipelines>
+
+  <!-- Shared METRICS pipeline -->
+  <pipelines name="metrics-pipeline" signal="METRICS">
+    <receivers xsi:type="obs:OtlpReceiver" name="otlp" protocol="GRPC" endpoint="0.0.0.0:4317"/>
+    <processors xsi:type="obs:BatchProcessor" name="batch" timeout="10s" maxBatchSize="1024"/>
+    <exporters xsi:type="obs:PrometheusExporter" name="prometheus" endpoint="0.0.0.0:8889"/>
+  </pipelines>
+
+  <!-- Shared LOGS pipeline -->
+  <pipelines name="logs-pipeline" signal="LOGS">
+    <receivers xsi:type="obs:OtlpReceiver" name="otlp" protocol="GRPC" endpoint="0.0.0.0:4317"/>
+    <processors xsi:type="obs:BatchProcessor" name="batch" timeout="5s" maxBatchSize="512"/>
+    <exporters xsi:type="obs:OtlpExporter" name="otlp" endpoint="otel-collector:4317"/>
+  </pipelines>
+
+  <!-- Cross-service alerts -->
+  <alertRules
+      name="HighGatewayErrorRate"
+      description="Gateway 5xx error rate exceeds 1% over the last 5 minutes"
+      expression="rate(gateway_5xx_total[5m]) / rate(gateway_requests_total[5m]) > 0.01"
+      severity="CRITICAL"
+      forDuration="5m"
+      referencedMetric="//@services.0/@instrumentations.0/@metrics.2">
+    <labels      key="team"    valueType="STRING" value="platform"/>
+    <annotations key="summary" valueType="STRING" value="Gateway 5xx rate above 1%"/>
+  </alertRules>
+
+  <alertRules
+      name="HighOrderFailureRate"
+      description="Order failure rate above 5% over the last 5 minutes"
+      expression="rate(orders_failed_total[5m]) / (rate(orders_created_total[5m]) + rate(orders_failed_total[5m])) > 0.05"
+      severity="CRITICAL"
+      forDuration="5m"
+      referencedMetric="//@services.1/@instrumentations.0/@metrics.1">
+    <labels      key="team"    valueType="STRING" value="orders"/>
+    <annotations key="summary" valueType="STRING" value="Order failure rate above 5%"/>
+  </alertRules>
+
+  <alertRules
+      name="HighOrderLatencyP99"
+      description="Order p99 latency exceeds 2000ms over the last 5 minutes"
+      expression="histogram_quantile(0.99, sum(rate(order_duration_bucket[5m])) by (le)) &gt; 2000"
+      severity="WARNING"
+      forDuration="10m"
+      referencedMetric="//@services.1/@instrumentations.0/@metrics.2">
+    <labels      key="team"    valueType="STRING" value="orders"/>
+    <annotations key="summary" valueType="STRING" value="Order p99 latency above 2s"/>
+  </alertRules>
+
+  <alertRules
+      name="LowInventoryStock"
+      description="Stock level dropped below safety threshold"
+      expression="stock_level &lt; 10"
+      severity="WARNING"
+      forDuration="2m"
+      referencedMetric="//@services.2/@instrumentations.0/@metrics.1">
+    <labels      key="team"    valueType="STRING" value="inventory"/>
+    <annotations key="summary" valueType="STRING" value="Inventory low for one or more SKUs"/>
+  </alertRules>
+
+</obs:ObservabilityModel>

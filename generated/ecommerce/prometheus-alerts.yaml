@@ -1,0 +1,42 @@
+# Auto-generated Prometheus alerting rules
+# Generated from: ecommerce-observability v1.0.0
+
+groups:
+  - name: ecommerce-observability
+    rules:
+      - alert: HighGatewayErrorRate
+        expr: "rate(gateway_5xx_total[5m]) / rate(gateway_requests_total[5m]) > 0.01"
+        for: 5m
+        labels:
+          severity: critical
+          team: "platform"
+        annotations:
+          description: "Gateway 5xx error rate exceeds 1% over the last 5 minutes"
+          summary: "Gateway 5xx rate above 1%"
+      - alert: HighOrderFailureRate
+        expr: "rate(orders_failed_total[5m]) / (rate(orders_created_total[5m]) + rate(orders_failed_total[5m])) > 0.05"
+        for: 5m
+        labels:
+          severity: critical
+          team: "orders"
+        annotations:
+          description: "Order failure rate above 5% over the last 5 minutes"
+          summary: "Order failure rate above 5%"
+      - alert: HighOrderLatencyP99
+        expr: "histogram_quantile(0.99, sum(rate(order_duration_bucket[5m])) by (le)) > 2000"
+        for: 10m
+        labels:
+          severity: warning
+          team: "orders"
+        annotations:
+          description: "Order p99 latency exceeds 2000ms over the last 5 minutes"
+          summary: "Order p99 latency above 2s"
+      - alert: LowInventoryStock
+        expr: "stock_level < 10"
+        for: 2m
+        labels:
+          severity: warning
+          team: "inventory"
+        annotations:
+          description: "Stock level dropped below safety threshold"
+          summary: "Inventory low for one or more SKUs"

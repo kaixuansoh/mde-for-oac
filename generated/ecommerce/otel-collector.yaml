@@ -1,0 +1,59 @@
+# Auto-generated OpenTelemetry Collector configuration
+# Generated from: ecommerce-observability v1.0.0
+
+receivers:
+  otlp/traces:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+  otlp/metrics:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+  otlp/logs:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  memory_limiter/traces:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch/traces:
+    timeout: 5s
+    send_batch_size: 512
+  batch/metrics:
+    timeout: 10s
+    send_batch_size: 1024
+  batch/logs:
+    timeout: 5s
+    send_batch_size: 512
+
+exporters:
+  otlp/traces:
+    endpoint: otel-collector:4317
+    compression: gzip
+    tls:
+      insecure: true
+  prometheus/metrics:
+    endpoint: 0.0.0.0:8889
+  otlp/logs:
+    endpoint: otel-collector:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp/traces]
+      processors: [memory_limiter/traces, batch/traces]
+      exporters: [otlp/traces]
+    metrics:
+      receivers: [otlp/metrics]
+      processors: [batch/metrics]
+      exporters: [prometheus/metrics]
+    logs:
+      receivers: [otlp/logs]
+      processors: [batch/logs]
+      exporters: [otlp/logs]
