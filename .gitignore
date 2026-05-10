@@ -5,3 +5,6 @@ __pycache__/
 .idea/
 .vscode/
 *.swp
+# Maven build outputs
+target/
+*.class
