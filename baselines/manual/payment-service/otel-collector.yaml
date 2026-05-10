@@ -1,0 +1,94 @@
+# Hand-authored OpenTelemetry Collector configuration for PaymentService.
+# Functionally equivalent to the framework-generated otel-collector.yaml.
+#
+# Three pipelines: traces, metrics, logs. OTLP gRPC is the primary entry
+# point on 4317; Jaeger and Prometheus components attach to the traces
+# and metrics signals respectively.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+  jaeger:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:14250
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel'
+          static_configs:
+            - targets: ['0.0.0.0:9464']
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch/traces:
+    timeout: 5s
+    send_batch_size: 512
+  batch/metrics:
+    timeout: 10s
+    send_batch_size: 1024
+  batch/logs:
+    timeout: 5s
+    send_batch_size: 512
+  tail_sampling:
+    decision_wait: 30s
+    policies:
+      # Always sample anything with an ERROR status
+      - name: errors-policy
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      # 5 % probabilistic sampling for the rest
+      - name: probabilistic-rest
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 5.0
+  attributes/enrich:
+    actions:
+      - key: cluster
+        action: insert
+        value: prod-eu-1
+      - key: region
+        action: upsert
+        value: eu-west-1
+      - key: internal.debug
+        action: delete
+
+exporters:
+  otlp/traces:
+    endpoint: otel-collector:4317
+    compression: gzip
+    tls:
+      insecure: true
+  jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: 0.0.0.0:8889
+  otlp/logs:
+    endpoint: otel-collector:4317
+    tls:
+      insecure: true
+  logging:
+    loglevel: info
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp, jaeger]
+      processors: [memory_limiter, batch/traces, tail_sampling]
+      exporters: [otlp/traces, jaeger]
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, batch/metrics, attributes/enrich]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [batch/logs]
+      exporters: [otlp/logs, logging]

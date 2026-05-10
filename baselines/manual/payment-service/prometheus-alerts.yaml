@@ -1,0 +1,29 @@
+# Hand-authored Prometheus alerting rules for PaymentService.
+# Functionally equivalent to framework-generated prometheus-alerts.yaml.
+
+groups:
+  - name: payment-service-observability
+    rules:
+      # Page on payment error rate above 5 % over a 5-min window
+      - alert: HighPaymentErrorRate
+        expr: rate(payment_errors_total[5m]) / rate(payment_requests_total_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          team: payments
+          service: PaymentService
+        annotations:
+          description: "Payment error rate is above 5% over the last 5 minutes"
+          summary: "Payment error rate exceeds 5% threshold"
+          runbook_url: "https://runbooks.acme.com/payments/high-error-rate"
+
+      # Warn on slow p99 latency for sustained period
+      - alert: HighPaymentLatencyP99
+        expr: histogram_quantile(0.99, sum(rate(payment_duration_bucket[5m])) by (le)) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          team: payments
+        annotations:
+          description: "P99 payment latency above 1s over the last 5 minutes"
+          summary: "Payment p99 latency exceeds 1000ms"

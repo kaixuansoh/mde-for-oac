@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-10T16:52:45Z",
+  "generated_at": "2026-05-10T17:01:05Z",
   "summary": {
     "scenarios": 2,
     "avg_CCR": 1.0,
@@ -88,7 +88,7 @@
         "MER": null
       },
       "timing_seconds": {
-        "T_generated": 0.04332,
+        "T_generated": 0.008395,
         "T_manual": null
       },
       "validation": {
@@ -152,7 +152,7 @@
         "MER": null
       },
       "timing_seconds": {
-        "T_generated": 0.004799,
+        "T_generated": 0.006896,
         "T_manual": null
       },
       "validation": {

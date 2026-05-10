@@ -224,16 +224,28 @@ def evaluate_scenario(instance_path, generated_dir, manual_seconds=None):
 # --------------------------------------------------------------------------
 # Driver
 # --------------------------------------------------------------------------
+def _resolve_manual_seconds(entry):
+    """Accept either {'T_manual_seconds': N, ...} or a bare number."""
+    if entry is None: return None
+    if isinstance(entry, (int, float)): return entry
+    if isinstance(entry, dict): return entry.get('T_manual_seconds')
+    return None
+
+
 def main():
+    default_baselines = HERE / 'baselines.json'
     ap = argparse.ArgumentParser()
-    ap.add_argument('--baselines', help='JSON file: {scenario_stem: manual_seconds}')
+    ap.add_argument('--baselines',
+                    help=f'JSON file with per-scenario manual timing. '
+                         f'Defaults to {default_baselines} if it exists.')
     ap.add_argument('--out', default=str(RESULTS_DIR), help='output directory for results JSON')
     ap.add_argument('--examples', default=str(EXAMPLES_DIR), help='directory of .observability instances')
     args = ap.parse_args()
 
+    baseline_path = pathlib.Path(args.baselines) if args.baselines else default_baselines
     baselines = {}
-    if args.baselines:
-        baselines = json.loads(pathlib.Path(args.baselines).read_text())
+    if baseline_path.exists():
+        baselines = json.loads(baseline_path.read_text())
 
     out_dir = pathlib.Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -246,7 +258,7 @@ def main():
     results = []
     for inst in scenarios:
         gen_dir = GENERATED_DIR / inst.stem
-        manual = baselines.get(inst.stem)
+        manual = _resolve_manual_seconds(baselines.get(inst.stem))
         r = evaluate_scenario(inst, gen_dir, manual_seconds=manual)
         results.append(r)
 
