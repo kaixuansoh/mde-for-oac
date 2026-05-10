@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sample instance model for the PaymentService scenario from §3.3.2.
+  Exercises every concept in observability.ecore:
+    - Service with resource attributes + head sampler
+    - InstrumentationScope holding spans (with parent links + events), all 4
+      synchronous metric kinds, and logs at two severities
+    - Three TelemetryPipelines (TRACES / METRICS / LOGS) using OTLP, Jaeger,
+      and Prometheus components plus Batch / MemoryLimiter / Attributes /
+      TailSampling processors
+    - Two AlertRules cross-referencing metrics across the model
+  Designed to satisfy every OCL invariant (errors and warnings) in the metamodel.
+-->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="payment-service-observability"
+    version="1.0.0">
+
+  <!-- =========================================================== -->
+  <!-- SERVICE                                                       -->
+  <!-- =========================================================== -->
+  <services
+      name="PaymentService"
+      namespace="com.acme.payments"
+      version="1.4.0"
+      environment="production"
+      language="JAVA">
+
+    <!-- OTel resource attributes -->
+    <resourceAttributes key="service.name"           valueType="STRING" value="PaymentService"     semanticConvention="service.name"/>
+    <resourceAttributes key="service.namespace"      valueType="STRING" value="com.acme.payments"  semanticConvention="service.namespace"/>
+    <resourceAttributes key="service.version"        valueType="STRING" value="1.4.0"              semanticConvention="service.version"/>
+    <resourceAttributes key="deployment.environment" valueType="STRING" value="production"         semanticConvention="deployment.environment"/>
+
+    <!-- Head-based sampler (10% via parent-based ratio) -->
+    <sampler type="PARENT_BASED" ratio="0.1"/>
+
+    <!-- =========================================================== -->
+    <!-- INSTRUMENTATION SCOPE                                         -->
+    <!-- =========================================================== -->
+    <instrumentations name="com.acme.payments" version="1.4.0">
+
+      <!-- Spans -->
+
+      <!-- [0] Root server span -->
+      <spans name="ProcessPayment" kind="SERVER" statusCode="UNSET">
+        <attributes key="http.request.method" valueType="STRING" value="POST"           semanticConvention="http.request.method"/>
+        <attributes key="http.route"          valueType="STRING" value="/payments"      semanticConvention="http.route"/>
+        <attributes key="component"           valueType="STRING" value="payment"/>
+      </spans>
+
+      <!-- [1] Internal child of ProcessPayment -->
+      <spans name="ValidatePayment" kind="INTERNAL" statusCode="OK"
+             parentSpan="//@services.0/@instrumentations.0/@spans.0">
+        <attributes key="component" valueType="STRING" value="validation"/>
+        <attributes key="status"    valueType="STRING" value="success"/>
+      </spans>
+
+      <!-- [2] Outbound client span with a span event -->
+      <spans name="ChargeCard" kind="CLIENT" statusCode="UNSET"
+             parentSpan="//@services.0/@instrumentations.0/@spans.0">
+        <attributes key="db.system"   valueType="STRING" value="postgresql"     semanticConvention="db.system"/>
+        <attributes key="net.peer.name" valueType="STRING" value="card-gateway" semanticConvention="net.peer.name"/>
+        <events name="card.authorized">
+          <attributes key="auth.code" valueType="STRING" value="A100"/>
+        </events>
+      </spans>
+
+      <!-- [3] Producer span for downstream queue publish -->
+      <spans name="PublishPaymentEvent" kind="PRODUCER" statusCode="UNSET"
+             parentSpan="//@services.0/@instrumentations.0/@spans.0">
+        <attributes key="messaging.system"      valueType="STRING" value="kafka"             semanticConvention="messaging.system"/>
+        <attributes key="messaging.destination" valueType="STRING" value="payment.completed" semanticConvention="messaging.destination"/>
+      </spans>
+
+      <!-- Metrics -->
+
+      <!-- [0] Counter -->
+      <metrics name="payment.requests.total"
+               type="COUNTER" unit="1" valueType="LONG"
+               description="Total payment requests received">
+        <attributes key="http.route" valueType="STRING" value="/payments" semanticConvention="http.route"/>
+      </metrics>
+
+      <!-- [1] Histogram with explicit bucket aggregation (E11 satisfied) -->
+      <metrics name="payment.duration"
+               type="HISTOGRAM" unit="ms" valueType="DOUBLE"
+               aggregation="EXPLICIT_BUCKET_HISTOGRAM"
+               description="End-to-end payment processing latency">
+        <attributes key="http.route" valueType="STRING" value="/payments" semanticConvention="http.route"/>
+      </metrics>
+
+      <!-- [2] Counter for errors -->
+      <metrics name="payment.errors"
+               type="COUNTER" unit="1" valueType="LONG"
+               description="Total payment errors">
+        <attributes key="error.type" valueType="STRING" value="all"/>
+      </metrics>
+
+      <!-- [3] UpDownCounter -->
+      <metrics name="payment.active_connections"
+               type="UP_DOWN_COUNTER" unit="1" valueType="LONG"
+               description="In-flight payment connections"/>
+
+      <!-- Logs -->
+
+      <!-- ERROR (severity 17) -->
+      <logs severityNumber="17" severityText="ERROR"
+            body="Payment processing failed"
+            correlateToSpan="true">
+        <attributes key="error.type" valueType="STRING" value="card_declined"/>
+      </logs>
+
+      <!-- INFO (severity 9) -->
+      <logs severityNumber="9" severityText="INFO"
+            body="Payment processed successfully"
+            correlateToSpan="true"/>
+
+    </instrumentations>
+  </services>
+
+  <!-- =========================================================== -->
+  <!-- TELEMETRY PIPELINES (Collector configuration)                 -->
+  <!-- =========================================================== -->
+
+  <!-- [0] TRACES pipeline: OTLP+Jaeger ingest, batch + tail-sample, OTLP+Jaeger out -->
+  <pipelines name="traces-pipeline" signal="TRACES">
+    <receivers xsi:type="obs:OtlpReceiver"   name="otlp"   protocol="GRPC"          endpoint="0.0.0.0:4317"/>
+    <receivers xsi:type="obs:JaegerReceiver" name="jaeger" protocol="HTTP_PROTOBUF" endpoint="0.0.0.0:14250"/>
+    <processors xsi:type="obs:MemoryLimiterProcessor" name="memory_limiter"
+                limitMiB="512" spikeLimitMiB="128"/>
+    <processors xsi:type="obs:BatchProcessor" name="batch"
+                timeout="5s" maxBatchSize="512"/>
+    <processors xsi:type="obs:TailSamplingProcessor" name="tail_sampling"
+                decisionWait="30s">
+      <policies name="errors-policy"      type="STATUS_CODE"   value="ERROR"/>
+      <policies name="probabilistic-rest" type="PROBABILISTIC" value="0.05"/>
+    </processors>
+    <exporters xsi:type="obs:OtlpExporter"   name="otlp"   endpoint="otel-collector:4317" compression="gzip"/>
+    <exporters xsi:type="obs:JaegerExporter" name="jaeger" endpoint="jaeger:14250"/>
+  </pipelines>
+
+  <!-- [1] METRICS pipeline: OTLP+Prometheus ingest, batch, Prometheus out -->
+  <pipelines name="metrics-pipeline" signal="METRICS">
+    <receivers xsi:type="obs:OtlpReceiver"       name="otlp"       protocol="GRPC"      endpoint="0.0.0.0:4317"/>
+    <receivers xsi:type="obs:PrometheusReceiver" name="prometheus" protocol="HTTP_JSON" endpoint="0.0.0.0:9464"/>
+    <processors xsi:type="obs:MemoryLimiterProcessor" name="memory_limiter"
+                limitMiB="512" spikeLimitMiB="128"/>
+    <processors xsi:type="obs:BatchProcessor" name="batch"
+                timeout="10s" maxBatchSize="1024"/>
+    <processors xsi:type="obs:AttributesProcessor" name="enrich">
+      <actions action="INSERT" key="cluster" value="prod-eu-1"/>
+      <actions action="UPSERT" key="region"  value="eu-west-1"/>
+      <actions action="DELETE" key="internal.debug"/>
+    </processors>
+    <exporters xsi:type="obs:PrometheusExporter" name="prometheus" endpoint="0.0.0.0:8889"/>
+  </pipelines>
+
+  <!-- [2] LOGS pipeline: OTLP ingest, batch, OTLP+Logging out -->
+  <pipelines name="logs-pipeline" signal="LOGS">
+    <receivers xsi:type="obs:OtlpReceiver" name="otlp" protocol="GRPC" endpoint="0.0.0.0:4317"/>
+    <processors xsi:type="obs:BatchProcessor" name="batch" timeout="5s" maxBatchSize="512"/>
+    <exporters xsi:type="obs:OtlpExporter"    name="otlp"    endpoint="otel-collector:4317"/>
+    <exporters xsi:type="obs:LoggingExporter" name="logging" endpoint="stdout"/>
+  </pipelines>
+
+  <!-- =========================================================== -->
+  <!-- ALERT RULES (cross-reference metrics in service[0].scope[0]) -->
+  <!-- =========================================================== -->
+
+  <!-- High error rate: references payment.errors (metric index 2) -->
+  <alertRules
+      name="HighPaymentErrorRate"
+      description="Payment error rate is above 5% over the last 5 minutes"
+      expression="rate(payment_errors_total[5m]) / rate(payment_requests_total_total[5m]) > 0.05"
+      severity="CRITICAL"
+      forDuration="5m"
+      referencedMetric="//@services.0/@instrumentations.0/@metrics.2">
+    <labels      key="team"        valueType="STRING" value="payments"/>
+    <labels      key="service"     valueType="STRING" value="PaymentService"/>
+    <annotations key="summary"     valueType="STRING" value="Payment error rate exceeds 5% threshold"/>
+    <annotations key="runbook_url" valueType="STRING" value="https://runbooks.acme.com/payments/high-error-rate"/>
+  </alertRules>
+
+  <!-- High p99 latency: references payment.duration (metric index 1) -->
+  <alertRules
+      name="HighPaymentLatencyP99"
+      description="P99 payment latency above 1s over the last 5 minutes"
+      expression="histogram_quantile(0.99, sum(rate(payment_duration_bucket[5m])) by (le)) &gt; 1000"
+      severity="WARNING"
+      forDuration="10m"
+      referencedMetric="//@services.0/@instrumentations.0/@metrics.1">
+    <labels      key="team"    valueType="STRING" value="payments"/>
+    <annotations key="summary" valueType="STRING" value="Payment p99 latency exceeds 1000ms"/>
+  </alertRules>
+
+</obs:ObservabilityModel>
