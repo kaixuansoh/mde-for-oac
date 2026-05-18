@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: E11 HistogramAggregationConsistent — Histogram metric
+     declares aggregation=SUM, which is not a histogram aggregation. -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-E11" version="1.0.0">
+  <services name="S1" namespace="com.example" language="JAVA">
+    <instrumentations name="com.example">
+      <metrics name="m.hist" type="HISTOGRAM" unit="ms" valueType="DOUBLE" aggregation="SUM"/>
+    </instrumentations>
+  </services>
+</obs:ObservabilityModel>

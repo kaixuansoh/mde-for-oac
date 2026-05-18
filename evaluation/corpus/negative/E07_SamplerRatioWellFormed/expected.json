@@ -1,0 +1,5 @@
+{
+  "code": "E7",
+  "name": "SamplerRatioWellFormed",
+  "rationale": "TRACE_ID_RATIO sampler with ratio=1.5; must lie in [0,1]."
+}

@@ -1,0 +1,5 @@
+{
+  "code": "E10",
+  "name": "ActionValueRequired",
+  "rationale": "AttributeAction with action=INSERT must carry a value (DELETE may omit it)."
+}

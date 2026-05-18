@@ -1,0 +1,5 @@
+{
+  "code": "E6b",
+  "name": "MetricsPipelineComponentCompat",
+  "rationale": "Jaeger receiver/exporter placed in a METRICS pipeline; Jaeger is signal-incompatible."
+}

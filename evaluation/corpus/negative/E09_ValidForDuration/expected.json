@@ -1,0 +1,5 @@
+{
+  "code": "E9",
+  "name": "ValidForDuration",
+  "rationale": "AlertRule forDuration=\"5minutes\" violates Prometheus duration grammar (must be one of ms|s|m|h|d)."
+}

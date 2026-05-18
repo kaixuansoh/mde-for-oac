@@ -1,0 +1,5 @@
+{
+  "code": "E11",
+  "name": "HistogramAggregationConsistent",
+  "rationale": "type=HISTOGRAM requires an explicit-bucket or exponential aggregation; SUM is forbidden."
+}

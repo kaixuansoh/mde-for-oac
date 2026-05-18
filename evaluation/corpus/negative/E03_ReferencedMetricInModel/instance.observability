@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: E3 ReferencedMetricInModel — AlertRule referencedMetric
+     points to a non-existent metric index. -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-E3" version="1.0.0">
+  <services name="S1" namespace="com.example" language="JAVA">
+    <instrumentations name="com.example">
+      <metrics name="m.real" type="COUNTER" unit="1" valueType="LONG"/>
+    </instrumentations>
+  </services>
+  <alertRules name="DanglingRef"
+              expression="rate(m_real[5m]) > 0"
+              severity="WARNING"
+              forDuration="5m"
+              referencedMetric="//@services.0/@instrumentations.0/@metrics.99"/>
+</obs:ObservabilityModel>

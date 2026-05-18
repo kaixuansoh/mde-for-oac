@@ -1,0 +1,5 @@
+{
+  "code": "E2",
+  "name": "UniqueMetricNames",
+  "rationale": "Two metrics in the same InstrumentationScope share name \"m.dup\"."
+}

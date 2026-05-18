@@ -1,0 +1,5 @@
+{
+  "code": "E12",
+  "name": "NonEmptyModel",
+  "rationale": "ObservabilityModel with zero <services> is structurally vacuous."
+}

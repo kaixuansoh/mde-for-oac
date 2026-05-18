@@ -1,0 +1,5 @@
+{
+  "code": "E4",
+  "name": "ParentSpanSameScope",
+  "rationale": "Span 'Child' in scope.b sets parentSpan to a span in scope.a; OTel scope boundaries must contain the parent-child relationship."
+}

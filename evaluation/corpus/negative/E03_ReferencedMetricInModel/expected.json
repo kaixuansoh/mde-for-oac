@@ -1,0 +1,5 @@
+{
+  "code": "E3",
+  "name": "ReferencedMetricInModel",
+  "rationale": "AlertRule.referencedMetric resolves to a nonexistent @metrics.99."
+}

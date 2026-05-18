@@ -1,0 +1,5 @@
+{
+  "code": "E6a",
+  "name": "TracesPipelineComponentCompat",
+  "rationale": "Prometheus receiver/exporter placed in a TRACES pipeline; Prometheus is signal-incompatible."
+}

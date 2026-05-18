@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: E5 NonEmptyEndpoints — pipeline has no exporters. -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-E5" version="1.0.0">
+  <services name="S1" namespace="com.example" language="JAVA">
+    <instrumentations name="com.example"/>
+  </services>
+  <pipelines name="orphan-pipeline" signal="TRACES">
+    <receivers xsi:type="obs:OtlpReceiver" name="otlp" protocol="GRPC" endpoint="0.0.0.0:4317"/>
+    <processors xsi:type="obs:BatchProcessor" name="batch" timeout="5s" maxBatchSize="512"/>
+    <!-- no exporters; E5 will fire on this. NB: the ecore declares
+         exporters lowerBound=1, so the structural validator also reports
+         this; the ICR check only inspects whether E5 fires. -->
+  </pipelines>
+</obs:ObservabilityModel>

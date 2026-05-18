@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: E6b MetricsPipelineComponentCompat — Jaeger components
+     in a METRICS pipeline (Jaeger carries traces, not metrics). -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-E6b" version="1.0.0">
+  <services name="S1" namespace="com.example" language="JAVA">
+    <instrumentations name="com.example"/>
+  </services>
+  <pipelines name="bad-metrics" signal="METRICS">
+    <receivers xsi:type="obs:JaegerReceiver" name="jaeger" protocol="HTTP_PROTOBUF" endpoint="0.0.0.0:14250"/>
+    <exporters xsi:type="obs:JaegerExporter" name="jaeger" endpoint="jaeger:14250"/>
+  </pipelines>
+</obs:ObservabilityModel>

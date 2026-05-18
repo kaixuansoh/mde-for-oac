@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: E9 ValidForDuration — forDuration uses an unsupported
+     unit ("minutes" rather than "m"). Regex: ^[0-9]+(ms|s|m|h|d)$. -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-E9" version="1.0.0">
+  <services name="S1" namespace="com.example" language="JAVA">
+    <instrumentations name="com.example">
+      <metrics name="m.real" type="COUNTER" unit="1" valueType="LONG"/>
+    </instrumentations>
+  </services>
+  <alertRules name="BadDuration"
+              expression="m_real > 0"
+              severity="WARNING"
+              forDuration="5minutes"
+              referencedMetric="//@services.0/@instrumentations.0/@metrics.0"/>
+</obs:ObservabilityModel>

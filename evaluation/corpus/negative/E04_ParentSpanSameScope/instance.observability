@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: E4 ParentSpanSameScope — child span's parentSpan points
+     to a span owned by a *different* InstrumentationScope. -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-E4" version="1.0.0">
+  <services name="S1" namespace="com.example" language="JAVA">
+    <instrumentations name="scope.a">
+      <spans name="Parent" kind="SERVER" statusCode="UNSET"/>
+    </instrumentations>
+    <instrumentations name="scope.b">
+      <spans name="Child" kind="INTERNAL" statusCode="UNSET"
+             parentSpan="//@services.0/@instrumentations.0/@spans.0"/>
+    </instrumentations>
+  </services>
+</obs:ObservabilityModel>

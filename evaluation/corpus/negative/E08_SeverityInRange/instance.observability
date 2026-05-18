@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: E8 SeverityInRange — log severityNumber=25, outside [1,24]. -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-E8" version="1.0.0">
+  <services name="S1" namespace="com.example" language="JAVA">
+    <instrumentations name="com.example">
+      <logs severityNumber="25" severityText="FATAL4"
+            body="out-of-range severity" correlateToSpan="false"/>
+    </instrumentations>
+  </services>
+</obs:ObservabilityModel>

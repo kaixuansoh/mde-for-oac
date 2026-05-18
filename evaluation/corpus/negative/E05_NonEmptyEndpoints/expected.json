@@ -1,0 +1,5 @@
+{
+  "code": "E5",
+  "name": "NonEmptyEndpoints",
+  "rationale": "TelemetryPipeline declares receivers but no exporters; OCL forbids open pipelines."
+}

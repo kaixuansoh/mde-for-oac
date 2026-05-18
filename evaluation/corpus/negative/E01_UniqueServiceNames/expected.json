@@ -1,0 +1,5 @@
+{
+  "code": "E1",
+  "name": "UniqueServiceNames",
+  "rationale": "Two <services> elements share name=\"S1\"; OCL self.services->isUnique(name) must fail."
+}

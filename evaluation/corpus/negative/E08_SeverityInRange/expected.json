@@ -1,0 +1,5 @@
+{
+  "code": "E8",
+  "name": "SeverityInRange",
+  "rationale": "OTel spec defines severityNumber in [1,24]; 25 is invalid."
+}
