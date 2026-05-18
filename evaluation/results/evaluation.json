@@ -1,17 +1,18 @@
 {
-  "generated_at": "2026-05-10T17:05:19Z",
+  "generated_at": "2026-05-18T16:34:19Z",
   "summary": {
     "scenarios": 3,
     "avg_CCR": 1.0,
     "avg_TCR_overall": 1.0,
     "avg_CED": 0.0,
-    "avg_MER": null
+    "negative_cases": 13,
+    "ICR": 1.0
   },
   "scenarios": [
     {
       "scenario": "banking",
-      "instance": "/Users/kaixuan.soh/Downloads/dissertation/framework/examples/banking.observability",
-      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/framework/generated/banking",
+      "instance": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/examples/banking.observability",
+      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/generated/banking",
       "source_model": {
         "services": 6,
         "pipelines": 3,
@@ -24,6 +25,8 @@
       },
       "generated": {
         "artefacts": 20,
+        "checkable_artefacts": 20,
+        "unchecked_artefacts": 0,
         "spans_present": 19,
         "metrics_present": 20,
         "logs_present": 8,
@@ -32,83 +35,143 @@
       "artefact_correctness": [
         {
           "file": "AccountServiceInstrumentation.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "AccountServiceLogs.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "AccountServiceMetrics.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "AuthServiceInstrumentation.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "AuthServiceLogs.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "AuthServiceMetrics.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "FraudDetectionServiceInstrumentation.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "FraudDetectionServiceLogs.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "FraudDetectionServiceMetrics.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "LedgerServiceInstrumentation.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "LedgerServiceLogs.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "LedgerServiceMetrics.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "NotificationServiceInstrumentation.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "NotificationServiceLogs.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "NotificationServiceMetrics.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "TransactionServiceInstrumentation.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "TransactionServiceLogs.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "TransactionServiceMetrics.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "otel-collector.yaml",
-          "correct": true
+          "correct": true,
+          "validator": "yaml-structural-fallback",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "prometheus-alerts.yaml",
-          "correct": true
+          "correct": true,
+          "validator": "promql-structural-fallback",
+          "unchecked": false,
+          "diagnostics": []
         }
       ],
       "metrics": {
@@ -120,12 +183,7 @@
           "logs": 1.0,
           "alerts": 1.0
         },
-        "CED": 0.0,
-        "MER": null
-      },
-      "timing_seconds": {
-        "T_generated": 0.01137,
-        "T_manual": null
+        "CED": 0.0
       },
       "validation": {
         "source_model_errors": 0,
@@ -134,8 +192,8 @@
     },
     {
       "scenario": "ecommerce",
-      "instance": "/Users/kaixuan.soh/Downloads/dissertation/framework/examples/ecommerce.observability",
-      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/framework/generated/ecommerce",
+      "instance": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/examples/ecommerce.observability",
+      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/generated/ecommerce",
       "source_model": {
         "services": 3,
         "pipelines": 3,
@@ -148,6 +206,8 @@
       },
       "generated": {
         "artefacts": 11,
+        "checkable_artefacts": 11,
+        "unchecked_artefacts": 0,
         "spans_present": 10,
         "metrics_present": 11,
         "logs_present": 4,
@@ -156,47 +216,80 @@
       "artefact_correctness": [
         {
           "file": "InventoryServiceInstrumentation.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "InventoryServiceLogs.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "InventoryServiceMetrics.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "OrderServiceInstrumentation.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "OrderServiceLogs.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "OrderServiceMetrics.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "WebGatewayInstrumentation.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "WebGatewayLogs.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "WebGatewayMetrics.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "otel-collector.yaml",
-          "correct": true
+          "correct": true,
+          "validator": "yaml-structural-fallback",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "prometheus-alerts.yaml",
-          "correct": true
+          "correct": true,
+          "validator": "promql-structural-fallback",
+          "unchecked": false,
+          "diagnostics": []
         }
       ],
       "metrics": {
@@ -208,12 +301,7 @@
           "logs": 1.0,
           "alerts": 1.0
         },
-        "CED": 0.0,
-        "MER": null
-      },
-      "timing_seconds": {
-        "T_generated": 0.004085,
-        "T_manual": null
+        "CED": 0.0
       },
       "validation": {
         "source_model_errors": 0,
@@ -222,8 +310,8 @@
     },
     {
       "scenario": "payment-service",
-      "instance": "/Users/kaixuan.soh/Downloads/dissertation/framework/examples/payment-service.observability",
-      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/framework/generated/payment-service",
+      "instance": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/examples/payment-service.observability",
+      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/generated/payment-service",
       "source_model": {
         "services": 1,
         "pipelines": 3,
@@ -236,6 +324,8 @@
       },
       "generated": {
         "artefacts": 5,
+        "checkable_artefacts": 5,
+        "unchecked_artefacts": 0,
         "spans_present": 4,
         "metrics_present": 4,
         "logs_present": 2,
@@ -244,23 +334,38 @@
       "artefact_correctness": [
         {
           "file": "PaymentServiceInstrumentation.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "PaymentServiceLogs.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "PaymentServiceMetrics.java",
-          "correct": true
+          "correct": true,
+          "validator": "javac",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "otel-collector.yaml",
-          "correct": true
+          "correct": true,
+          "validator": "yaml-structural-fallback",
+          "unchecked": false,
+          "diagnostics": []
         },
         {
           "file": "prometheus-alerts.yaml",
-          "correct": true
+          "correct": true,
+          "validator": "promql-structural-fallback",
+          "unchecked": false,
+          "diagnostics": []
         }
       ],
       "metrics": {
@@ -272,17 +377,192 @@
           "logs": 1.0,
           "alerts": 1.0
         },
-        "CED": 0.0,
-        "MER": null
-      },
-      "timing_seconds": {
-        "T_generated": 0.001396,
-        "T_manual": null
+        "CED": 0.0
       },
       "validation": {
         "source_model_errors": 0,
         "source_model_warnings": 0
       }
+    }
+  ],
+  "negative_corpus": [
+    {
+      "case": "E01_UniqueServiceNames",
+      "seeded_code": "E1",
+      "seeded_name": "UniqueServiceNames",
+      "rationale": "Two <services> elements share name=\"S1\"; OCL self.services->isUnique(name) must fail.",
+      "caught": true,
+      "caught_messages": [
+        "E1 UniqueServiceNames: duplicate service names"
+      ],
+      "incidental_errors": [],
+      "warnings": [
+        "W7 Service S1 emits no telemetry",
+        "W7 Service S1 emits no telemetry"
+      ]
+    },
+    {
+      "case": "E02_UniqueMetricNames",
+      "seeded_code": "E2",
+      "seeded_name": "UniqueMetricNames",
+      "rationale": "Two metrics in the same InstrumentationScope share name \"m.dup\".",
+      "caught": true,
+      "caught_messages": [
+        "E2 UniqueMetricNames violated in scope com.example"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "E03_ReferencedMetricInModel",
+      "seeded_code": "E3",
+      "seeded_name": "ReferencedMetricInModel",
+      "rationale": "AlertRule.referencedMetric resolves to a nonexistent @metrics.99.",
+      "caught": true,
+      "caught_messages": [
+        "E3 AlertRule DanglingRef references unknown metric"
+      ],
+      "incidental_errors": [
+        "//@alertRules.0.referencedMetric: unresolved //@services.0/@instrumentations.0/@metrics.99"
+      ],
+      "warnings": []
+    },
+    {
+      "case": "E04_ParentSpanSameScope",
+      "seeded_code": "E4",
+      "seeded_name": "ParentSpanSameScope",
+      "rationale": "Span 'Child' in scope.b sets parentSpan to a span in scope.a; OTel scope boundaries must contain the parent-child relationship.",
+      "caught": true,
+      "caught_messages": [
+        "E4 Span at //@services.0/@instrumentations.1/@spans.0 parent in different scope"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "E05_NonEmptyEndpoints",
+      "seeded_code": "E5",
+      "seeded_name": "NonEmptyEndpoints",
+      "rationale": "TelemetryPipeline declares receivers but no exporters; OCL forbids open pipelines.",
+      "caught": true,
+      "caught_messages": [
+        "E5 pipeline orphan-pipeline: missing receivers/exporters"
+      ],
+      "incidental_errors": [
+        "//@pipelines.0: containment \"exporters\" needs >=1 (got 0)"
+      ],
+      "warnings": [
+        "W7 Service S1 emits no telemetry"
+      ]
+    },
+    {
+      "case": "E06a_TracesPipelinePrometheus",
+      "seeded_code": "E6a",
+      "seeded_name": "TracesPipelineComponentCompat",
+      "rationale": "Prometheus receiver/exporter placed in a TRACES pipeline; Prometheus is signal-incompatible.",
+      "caught": true,
+      "caught_messages": [
+        "E6a pipeline bad-traces: Prometheus in TRACES",
+        "E6a pipeline bad-traces: Prometheus in TRACES"
+      ],
+      "incidental_errors": [],
+      "warnings": [
+        "W5 pipeline bad-traces: no BatchProcessor",
+        "W7 Service S1 emits no telemetry"
+      ]
+    },
+    {
+      "case": "E06b_MetricsPipelineJaeger",
+      "seeded_code": "E6b",
+      "seeded_name": "MetricsPipelineComponentCompat",
+      "rationale": "Jaeger receiver/exporter placed in a METRICS pipeline; Jaeger is signal-incompatible.",
+      "caught": true,
+      "caught_messages": [
+        "E6b pipeline bad-metrics: Jaeger in METRICS",
+        "E6b pipeline bad-metrics: Jaeger in METRICS"
+      ],
+      "incidental_errors": [],
+      "warnings": [
+        "W5 pipeline bad-metrics: no BatchProcessor",
+        "W7 Service S1 emits no telemetry"
+      ]
+    },
+    {
+      "case": "E07_SamplerRatioWellFormed",
+      "seeded_code": "E7",
+      "seeded_name": "SamplerRatioWellFormed",
+      "rationale": "TRACE_ID_RATIO sampler with ratio=1.5; must lie in [0,1].",
+      "caught": true,
+      "caught_messages": [
+        "E7 sampler ratio invalid for TRACE_ID_RATIO_BASED"
+      ],
+      "incidental_errors": [],
+      "warnings": [
+        "W7 Service S1 emits no telemetry"
+      ]
+    },
+    {
+      "case": "E08_SeverityInRange",
+      "seeded_code": "E8",
+      "seeded_name": "SeverityInRange",
+      "rationale": "OTel spec defines severityNumber in [1,24]; 25 is invalid.",
+      "caught": true,
+      "caught_messages": [
+        "E8 log severity 25 out of [1,24]"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "E09_ValidForDuration",
+      "seeded_code": "E9",
+      "seeded_name": "ValidForDuration",
+      "rationale": "AlertRule forDuration=\"5minutes\" violates Prometheus duration grammar (must be one of ms|s|m|h|d).",
+      "caught": true,
+      "caught_messages": [
+        "E9 AlertRule BadDuration forDuration '5minutes'"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "E10_ActionValueRequired",
+      "seeded_code": "E10",
+      "seeded_name": "ActionValueRequired",
+      "rationale": "AttributeAction with action=INSERT must carry a value (DELETE may omit it).",
+      "caught": true,
+      "caught_messages": [
+        "E10 AttributeAction at //@pipelines.0/@processors.0/@actions.0 missing value"
+      ],
+      "incidental_errors": [],
+      "warnings": [
+        "W5 pipeline metrics-pipeline: no BatchProcessor",
+        "W7 Service S1 emits no telemetry"
+      ]
+    },
+    {
+      "case": "E11_HistogramAggregationConsistent",
+      "seeded_code": "E11",
+      "seeded_name": "HistogramAggregationConsistent",
+      "rationale": "type=HISTOGRAM requires an explicit-bucket or exponential aggregation; SUM is forbidden.",
+      "caught": true,
+      "caught_messages": [
+        "E11 Histogram metric at //@services.0/@instrumentations.0/@metrics.0: aggregation=SUM"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "E12_NonEmptyModel",
+      "seeded_code": "E12",
+      "seeded_name": "NonEmptyModel",
+      "rationale": "ObservabilityModel with zero <services> is structurally vacuous.",
+      "caught": true,
+      "caught_messages": [
+        "E12 model has no services"
+      ],
+      "incidental_errors": [],
+      "warnings": []
     }
   ]
 }

@@ -55,9 +55,15 @@ A user authors one **M1 instance** describing their services, signals, pipelines
 │   ├── ecommerce/                           11 artefacts
 │   └── banking/                             20 artefacts
 │
-└── evaluation/                              Phase III evaluation
-    ├── evaluate.py                          CCR / TCR / CED harness
-    └── results/evaluation.json              Latest run
+├── evaluation/                              Phase III evaluation
+│   ├── evaluate.py                          CCR / TCR / CED / ICR harness
+│   ├── validators/                          Real-tool correctness checks
+│   │   ├── pom.xml                          Pinned opentelemetry-api classpath shim
+│   │   └── checks.py                        javac / otelcol / promtool wrappers
+│   ├── corpus/negative/                     Minimal instances violating E1–E12
+│   └── results/evaluation.json              Latest run
+│
+└── requirements.txt                         Python deps for the evaluation harness
 ```
 
 ### Metamodel
@@ -84,19 +90,30 @@ Both runtimes validate the source model first and refuse to emit if any error-ti
 
 ### Evaluation harness
 
-`evaluation/evaluate.py` computes three metrics:
+`evaluation/evaluate.py` computes four metrics across two disjoint corpora — three on the positive scenarios under `examples/`, plus a coverage metric on the negative corpus under `evaluation/corpus/negative/`:
 
-| Metric | Definition |
-|---|---|
-| **CCR** — Configuration Correctness Rate | `N_correct / N_total` |
-| **TCR** — Telemetry Coverage Ratio       | `N_present / N_required` (overall + per signal type) |
-| **CED** — Configuration Error Density    | `N_errors / N_entities` |
+| Metric | Corpus | Definition |
+|---|---|---|
+| **CCR** — Configuration Correctness Rate | positive | `N_correct / N_checkable` |
+| **TCR** — Telemetry Coverage Ratio       | positive | `N_present / N_required` (overall + per signal type) |
+| **CED** — Configuration Error Density    | positive | `N_errors / N_entities` |
+| **ICR** — Invariant Coverage Rate        | negative | `N_caught / N_seeded` |
+
+CCR is computed with real validators rather than syntactic heuristics: generated Java is compiled with `javac` against the pinned `opentelemetry-api` classpath defined in `evaluation/validators/pom.xml`; Collector YAML is checked with `otelcol validate` when the binary is on PATH (with a structural fallback covering pipeline references and component types); Prometheus alert rules are checked with `promtool check rules` when present (with a duration-grammar and rule-structure fallback). The validator used per artefact is recorded in `evaluation/results/evaluation.json`. Artefacts whose validator is unavailable are reported as `unchecked` and excluded from CCR's denominator.
+
+ICR is measured against the negative corpus — one minimal `.observability` instance per OCL error invariant (E1–E12, with E6 split into E6a / E6b for the signal-specific pipeline-component rules). Each subdirectory pairs an `instance.observability` with an `expected.json` declaring the seeded error code; the harness asserts that code appears among the validator's errors. CED and ICR sit on disjoint inputs, so they complement each other rather than overlap.
 
 ## Quickstart
 
-### Python prototype (zero dependencies beyond `PyYAML`)
+### Python prototype
+
+`validate_instance.py` and `generate.py` use the standard library only. The evaluation harness additionally needs PyYAML (for the YAML structural checks) and a JDK + Maven (to resolve the OpenTelemetry API classpath for `javac`).
 
 ```bash
+# 0. (One-time) create a venv and install harness deps
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+
 # 1. Validate an instance against the metamodel
 python3 scripts/validate_instance.py examples/payment-service.observability
 
@@ -104,9 +121,11 @@ python3 scripts/validate_instance.py examples/payment-service.observability
 python3 scripts/generate.py examples/payment-service.observability \
                             generated/payment-service
 
-# 3. Run the full evaluation across all scenarios
-python3 evaluation/evaluate.py
+# 3. Run the full evaluation across all scenarios + the negative corpus
+.venv/bin/python evaluation/evaluate.py
 ```
+
+On the first run, the evaluation harness invokes Maven once under `evaluation/validators/` to materialise `classpath.txt` (an ignored, machine-specific file) containing the resolved `opentelemetry-api` jars. Subsequent runs reuse the cached classpath. Installing `otelcol` (or `otelcol-contrib`) and `promtool` on the PATH switches the YAML checks from the structural fallbacks to the canonical validators.
 
 ### JVM runtime (Java 21 + Maven)
 
