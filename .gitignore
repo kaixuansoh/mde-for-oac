@@ -8,3 +8,10 @@ __pycache__/
 # Maven build outputs
 target/
 *.class
+
+# Python virtualenv
+.venv/
+
+# Materialised by evaluation/validators/pom.xml on first harness run; paths
+# are absolute and machine-specific.
+evaluation/validators/classpath.txt
