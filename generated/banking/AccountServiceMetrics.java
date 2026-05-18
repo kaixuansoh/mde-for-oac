@@ -3,7 +3,7 @@ package com.acme.banking.accounts;
 import io.opentelemetry.api.metrics.DoubleGauge;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
 /**
  * Auto-generated OpenTelemetry metric registry for AccountService.
@@ -12,7 +12,7 @@ import io.opentelemetry.api.OpenTelemetry;
 public final class AccountServiceMetrics {
 
     private static final Meter COM_ACME_BANKING_ACCOUNTS_METER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getMeter("com.acme.banking.accounts");
 
     public final LongCounter account_queries_total = COM_ACME_BANKING_ACCOUNTS_METER

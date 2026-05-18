@@ -3,7 +3,7 @@ package com.acme.inventory;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
 /**
  * Auto-generated OpenTelemetry metric registry for InventoryService.
@@ -12,7 +12,7 @@ import io.opentelemetry.api.OpenTelemetry;
 public final class InventoryServiceMetrics {
 
     private static final Meter COM_ACME_INVENTORY_METER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getMeter("com.acme.inventory");
 
     public final LongCounter stock_queries_total = COM_ACME_INVENTORY_METER

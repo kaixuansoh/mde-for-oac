@@ -1,6 +1,6 @@
 package com.acme.banking.notifications;
 
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.logs.Severity;
@@ -12,7 +12,7 @@ import io.opentelemetry.api.logs.Severity;
 public final class NotificationServiceLogs {
 
     private static final Logger COM_ACME_BANKING_NOTIFICATIONS_LOGGER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getLogsBridge()
             .get("com.acme.banking.notifications");
 

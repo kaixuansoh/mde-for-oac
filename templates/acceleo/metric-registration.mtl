@@ -17,7 +17,7 @@
 [file (service.name.concat('Metrics.java'), false, 'UTF-8')]
 package [packageName(service)/];
 
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.metrics.DoubleCounter;
 import io.opentelemetry.api.metrics.DoubleGauge;
 import io.opentelemetry.api.metrics.DoubleHistogram;
@@ -42,7 +42,7 @@ public final class [service.name/]Metrics {
 
 [for (scope : InstrumentationScope | service.instrumentations)]
     private static final Meter [meterField(scope)/] =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getMeter("[scope.name/]");
 [/for]
 

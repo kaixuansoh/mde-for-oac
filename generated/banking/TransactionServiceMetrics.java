@@ -4,7 +4,7 @@ import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongUpDownCounter;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
 /**
  * Auto-generated OpenTelemetry metric registry for TransactionService.
@@ -13,7 +13,7 @@ import io.opentelemetry.api.OpenTelemetry;
 public final class TransactionServiceMetrics {
 
     private static final Meter COM_ACME_BANKING_TRANSACTIONS_METER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getMeter("com.acme.banking.transactions");
 
     public final LongCounter transactions_initiated_total = COM_ACME_BANKING_TRANSACTIONS_METER

@@ -3,7 +3,7 @@ package com.acme.gateway;
 import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
 /**
  * Auto-generated OpenTelemetry metric registry for WebGateway.
@@ -12,7 +12,7 @@ import io.opentelemetry.api.OpenTelemetry;
 public final class WebGatewayMetrics {
 
     private static final Meter COM_ACME_GATEWAY_METER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getMeter("com.acme.gateway");
 
     public final LongCounter gateway_requests_total = COM_ACME_GATEWAY_METER

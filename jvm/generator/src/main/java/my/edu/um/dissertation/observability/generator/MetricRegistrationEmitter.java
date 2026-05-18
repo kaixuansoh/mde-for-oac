@@ -50,7 +50,7 @@ public final class MetricRegistrationEmitter implements Emitter {
             b.append("package ").append(packageName(service)).append(";\n\n");
             for (String imp : imports) b.append("import ").append(imp).append(";\n");
             b.append("import io.opentelemetry.api.metrics.Meter;\n");
-            b.append("import io.opentelemetry.api.OpenTelemetry;\n\n");
+            b.append("import io.opentelemetry.api.GlobalOpenTelemetry;\n\n");
             b.append("/**\n * Auto-generated OpenTelemetry metric registry for ")
              .append(str(service, "name")).append(".\n")
              .append(" * Generated from observability model — do not edit by hand.\n */\n");
@@ -59,7 +59,7 @@ public final class MetricRegistrationEmitter implements Emitter {
             for (EObject scope : children(service, "instrumentations")) {
                 b.append("    private static final Meter ")
                  .append(meterField(str(scope, "name"))).append(" =\n")
-                 .append("        OpenTelemetry.getGlobalOpenTelemetry()\n")
+                 .append("        GlobalOpenTelemetry.get()\n")
                  .append("            .getMeter(\"").append(str(scope, "name")).append("\");\n");
             }
             b.append("\n");

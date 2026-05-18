@@ -3,7 +3,7 @@ package com.acme.banking.ledger;
 import io.opentelemetry.api.metrics.DoubleGauge;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
 /**
  * Auto-generated OpenTelemetry metric registry for LedgerService.
@@ -12,7 +12,7 @@ import io.opentelemetry.api.OpenTelemetry;
 public final class LedgerServiceMetrics {
 
     private static final Meter COM_ACME_BANKING_LEDGER_METER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getMeter("com.acme.banking.ledger");
 
     public final LongCounter ledger_entries_total = COM_ACME_BANKING_LEDGER_METER

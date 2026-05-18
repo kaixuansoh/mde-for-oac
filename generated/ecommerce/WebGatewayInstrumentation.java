@@ -1,6 +1,6 @@
 package com.acme.gateway;
 
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
@@ -16,7 +16,7 @@ import io.opentelemetry.context.Context;
 public final class WebGatewayInstrumentation {
 
     private static final Tracer COM_ACME_GATEWAY_TRACER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getTracer("com.acme.gateway", "2.1.0");
 
     public Span startHandleRequest() {

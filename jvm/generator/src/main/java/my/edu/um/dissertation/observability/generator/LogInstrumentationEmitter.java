@@ -39,7 +39,7 @@ public final class LogInstrumentationEmitter implements Emitter {
             String cls = str(service, "name") + "Logs";
             StringBuilder b = new StringBuilder();
             b.append("package ").append(packageName(service)).append(";\n\n");
-            b.append("import io.opentelemetry.api.OpenTelemetry;\n");
+            b.append("import io.opentelemetry.api.GlobalOpenTelemetry;\n");
             b.append("import io.opentelemetry.api.common.AttributeKey;\n");
             b.append("import io.opentelemetry.api.logs.Logger;\n");
             b.append("import io.opentelemetry.api.logs.Severity;\n\n");
@@ -51,7 +51,7 @@ public final class LogInstrumentationEmitter implements Emitter {
             for (EObject scope : children(service, "instrumentations")) {
                 b.append("    private static final Logger ")
                  .append(loggerField(str(scope, "name"))).append(" =\n")
-                 .append("        OpenTelemetry.getGlobalOpenTelemetry()\n")
+                 .append("        GlobalOpenTelemetry.get()\n")
                  .append("            .getLogsBridge()\n")
                  .append("            .get(\"").append(str(scope, "name")).append("\");\n");
             }

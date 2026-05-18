@@ -3,7 +3,7 @@ package com.acme.banking.auth;
 import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
 /**
  * Auto-generated OpenTelemetry metric registry for AuthService.
@@ -12,7 +12,7 @@ import io.opentelemetry.api.OpenTelemetry;
 public final class AuthServiceMetrics {
 
     private static final Meter COM_ACME_BANKING_AUTH_METER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getMeter("com.acme.banking.auth");
 
     public final LongCounter auth_login_attempts = COM_ACME_BANKING_AUTH_METER

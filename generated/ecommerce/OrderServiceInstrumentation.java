@@ -1,6 +1,6 @@
 package com.acme.orders;
 
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
@@ -16,7 +16,7 @@ import io.opentelemetry.context.Context;
 public final class OrderServiceInstrumentation {
 
     private static final Tracer COM_ACME_ORDERS_TRACER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getTracer("com.acme.orders", "1.3.0");
 
     public Span startCreateOrder() {

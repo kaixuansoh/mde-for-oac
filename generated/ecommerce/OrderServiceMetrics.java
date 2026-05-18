@@ -4,7 +4,7 @@ import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongUpDownCounter;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
 /**
  * Auto-generated OpenTelemetry metric registry for OrderService.
@@ -13,7 +13,7 @@ import io.opentelemetry.api.OpenTelemetry;
 public final class OrderServiceMetrics {
 
     private static final Meter COM_ACME_ORDERS_METER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getMeter("com.acme.orders");
 
     public final LongCounter orders_created_total = COM_ACME_ORDERS_METER

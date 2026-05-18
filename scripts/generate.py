@@ -58,7 +58,7 @@ def gen_span_instrumentation(model, outdir):
         L = []
         L.append(f'package {_package_name(service)};')
         L.append('')
-        L.append('import io.opentelemetry.api.OpenTelemetry;')
+        L.append('import io.opentelemetry.api.GlobalOpenTelemetry;')
         L.append('import io.opentelemetry.api.common.Attributes;')
         L.append('import io.opentelemetry.api.trace.Span;')
         L.append('import io.opentelemetry.api.trace.SpanBuilder;')
@@ -77,7 +77,7 @@ def gen_span_instrumentation(model, outdir):
             sn = scope.get('name'); sv = scope.get('version')
             ver = f', "{sv}"' if sv else ''
             L.append(f'    private static final Tracer {_tracer_field(sn)} =')
-            L.append('        OpenTelemetry.getGlobalOpenTelemetry()')
+            L.append('        GlobalOpenTelemetry.get()')
             L.append(f'            .getTracer("{sn}"{ver});')
         L.append('')
         for scope in _kids(service, 'instrumentations'):
@@ -160,7 +160,7 @@ def gen_metric_registration(model, outdir):
                           for m in _kids(scope, 'metrics')}):
             L.append(f'import io.opentelemetry.api.metrics.{cn};')
         L.append('import io.opentelemetry.api.metrics.Meter;')
-        L.append('import io.opentelemetry.api.OpenTelemetry;')
+        L.append('import io.opentelemetry.api.GlobalOpenTelemetry;')
         L.append('')
         L.append('/**')
         L.append(f" * Auto-generated OpenTelemetry metric registry for {service.get('name')}.")
@@ -170,7 +170,7 @@ def gen_metric_registration(model, outdir):
         L.append('')
         for scope in _kids(service, 'instrumentations'):
             L.append(f'    private static final Meter {_meter_field(scope.get("name"))} =')
-            L.append('        OpenTelemetry.getGlobalOpenTelemetry()')
+            L.append('        GlobalOpenTelemetry.get()')
             L.append(f'            .getMeter("{scope.get("name")}");')
         L.append('')
         for scope in _kids(service, 'instrumentations'):
@@ -374,7 +374,7 @@ def gen_log_instrumentation(model, outdir):
         L = []
         L.append(f'package {_package_name(service)};')
         L.append('')
-        L.append('import io.opentelemetry.api.OpenTelemetry;')
+        L.append('import io.opentelemetry.api.GlobalOpenTelemetry;')
         L.append('import io.opentelemetry.api.common.AttributeKey;')
         L.append('import io.opentelemetry.api.logs.Logger;')
         L.append('import io.opentelemetry.api.logs.Severity;')
@@ -388,7 +388,7 @@ def gen_log_instrumentation(model, outdir):
         for scope in _kids(service, 'instrumentations'):
             sn = scope.get('name')
             L.append(f'    private static final Logger {_logger_field(sn)} =')
-            L.append('        OpenTelemetry.getGlobalOpenTelemetry()')
+            L.append('        GlobalOpenTelemetry.get()')
             L.append('            .getLogsBridge()')
             L.append(f'            .get("{sn}");')
         L.append('')

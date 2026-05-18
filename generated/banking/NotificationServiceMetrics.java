@@ -3,7 +3,7 @@ package com.acme.banking.notifications;
 import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
 /**
  * Auto-generated OpenTelemetry metric registry for NotificationService.
@@ -12,7 +12,7 @@ import io.opentelemetry.api.OpenTelemetry;
 public final class NotificationServiceMetrics {
 
     private static final Meter COM_ACME_BANKING_NOTIFICATIONS_METER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getMeter("com.acme.banking.notifications");
 
     public final LongCounter notifications_sent_total = COM_ACME_BANKING_NOTIFICATIONS_METER

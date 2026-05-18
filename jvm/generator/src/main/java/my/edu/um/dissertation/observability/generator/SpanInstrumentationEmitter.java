@@ -22,7 +22,7 @@ public final class SpanInstrumentationEmitter implements Emitter {
             String cls = str(service, "name") + "Instrumentation";
             StringBuilder b = new StringBuilder();
             b.append("package ").append(packageName(service)).append(";\n\n");
-            b.append("import io.opentelemetry.api.OpenTelemetry;\n");
+            b.append("import io.opentelemetry.api.GlobalOpenTelemetry;\n");
             b.append("import io.opentelemetry.api.common.Attributes;\n");
             b.append("import io.opentelemetry.api.trace.Span;\n");
             b.append("import io.opentelemetry.api.trace.SpanBuilder;\n");
@@ -40,7 +40,7 @@ public final class SpanInstrumentationEmitter implements Emitter {
                 String sv = str(scope, "version");
                 b.append("    private static final Tracer ")
                  .append(tracerField(sn)).append(" =\n")
-                 .append("        OpenTelemetry.getGlobalOpenTelemetry()\n")
+                 .append("        GlobalOpenTelemetry.get()\n")
                  .append("            .getTracer(\"").append(sn).append("\"");
                 if (sv != null) b.append(", \"").append(sv).append("\"");
                 b.append(");\n");

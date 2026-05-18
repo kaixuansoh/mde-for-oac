@@ -4,7 +4,7 @@ import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongUpDownCounter;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
 /**
  * Auto-generated OpenTelemetry metric registry for PaymentService.
@@ -13,7 +13,7 @@ import io.opentelemetry.api.OpenTelemetry;
 public final class PaymentServiceMetrics {
 
     private static final Meter COM_ACME_PAYMENTS_METER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getMeter("com.acme.payments");
 
     public final LongCounter payment_requests_total = COM_ACME_PAYMENTS_METER

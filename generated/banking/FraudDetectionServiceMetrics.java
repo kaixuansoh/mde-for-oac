@@ -3,7 +3,7 @@ package com.acme.banking.fraud;
 import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
 /**
  * Auto-generated OpenTelemetry metric registry for FraudDetectionService.
@@ -12,7 +12,7 @@ import io.opentelemetry.api.OpenTelemetry;
 public final class FraudDetectionServiceMetrics {
 
     private static final Meter COM_ACME_BANKING_FRAUD_METER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getMeter("com.acme.banking.fraud");
 
     public final LongCounter fraud_scores_computed = COM_ACME_BANKING_FRAUD_METER

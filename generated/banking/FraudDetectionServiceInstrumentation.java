@@ -1,6 +1,6 @@
 package com.acme.banking.fraud;
 
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
@@ -16,7 +16,7 @@ import io.opentelemetry.context.Context;
 public final class FraudDetectionServiceInstrumentation {
 
     private static final Tracer COM_ACME_BANKING_FRAUD_TRACER =
-        OpenTelemetry.getGlobalOpenTelemetry()
+        GlobalOpenTelemetry.get()
             .getTracer("com.acme.banking.fraud", "1.8.0");
 
     public Span startScoreTransaction() {
