@@ -55,13 +55,8 @@ A user authors one **M1 instance** describing their services, signals, pipelines
 │   ├── ecommerce/                           11 artefacts
 │   └── banking/                             20 artefacts
 │
-├── baselines/                               Hand-authored OaC for MER comparison
-│   ├── README.md                            Capture protocols (A / B / C)
-│   └── manual/<scenario>/                   Functional equivalents of generated/
-│
 └── evaluation/                              Phase III evaluation
-    ├── evaluate.py                          CCR / TCR / CED / MER harness
-    ├── baselines.json                       Per-scenario T_manual values
+    ├── evaluate.py                          CCR / TCR / CED harness
     └── results/evaluation.json              Latest run
 ```
 
@@ -87,22 +82,15 @@ The five `.mtl` templates under `templates/acceleo/` are the canonical Phase II 
 
 Both runtimes validate the source model first and refuse to emit if any error-tier OCL invariant fails.
 
-### Manual baselines
-
-`baselines/manual/<scenario>/` contains hand-authored OaC artefacts functionally equivalent to what the framework generates — the basis for measuring `T_manual` in the **Manual Effort Reduction** metric. `baselines/README.md` documents three capture protocols (direct authoring, researcher self-timing, model-based estimation) so the timing data has a defensible methodology.
-
 ### Evaluation harness
 
-`evaluation/evaluate.py` computes four metrics:
+`evaluation/evaluate.py` computes three metrics:
 
 | Metric | Definition |
 |---|---|
 | **CCR** — Configuration Correctness Rate | `N_correct / N_total` |
 | **TCR** — Telemetry Coverage Ratio       | `N_present / N_required` (overall + per signal type) |
 | **CED** — Configuration Error Density    | `N_errors / N_entities` |
-| **MER** — Manual Effort Reduction        | `(T_manual − T_generated) / T_manual` |
-
-The harness auto-loads `evaluation/baselines.json`; MER is reported per scenario only if a `T_manual_seconds` value is present.
 
 ## Quickstart
 
