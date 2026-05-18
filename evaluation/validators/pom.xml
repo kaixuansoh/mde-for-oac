@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Classpath shim for evaluation/evaluate.py.
+
+  Sole purpose: pin the OpenTelemetry Java API version that generated
+  artefacts must compile against. The evaluation harness invokes
+    mvn -q dependency:build-classpath -Dmdep.outputFile=classpath.txt
+  once per run (cached afterwards) and feeds the resulting classpath
+  to javac. There is no source code in this module.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.acme.observability.eval</groupId>
+  <artifactId>otel-api-classpath</artifactId>
+  <version>0.1.0</version>
+  <packaging>pom</packaging>
+
+  <properties>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <opentelemetry.version>1.46.0</opentelemetry.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+      <version>${opentelemetry.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-context</artifactId>
+      <version>${opentelemetry.version}</version>
+    </dependency>
+  </dependencies>
+</project>
