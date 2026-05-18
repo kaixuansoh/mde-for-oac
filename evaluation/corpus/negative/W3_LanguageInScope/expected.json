@@ -1,0 +1,6 @@
+{
+  "code": "W3",
+  "name": "LanguageInScope",
+  "kind": "warning",
+  "rationale": "Service language=GO falls outside the JAVA-only emitter scope; OCL W_LanguageInScope warns."
+}

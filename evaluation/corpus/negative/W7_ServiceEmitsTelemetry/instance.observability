@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: W7 W_ServiceEmitsTelemetry — service declares an
+     InstrumentationScope but emits no spans, metrics, or logs. -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-W7" version="1.0.0">
+  <services name="Silent" namespace="com.example" language="JAVA">
+    <instrumentations name="com.example"/>
+  </services>
+</obs:ObservabilityModel>

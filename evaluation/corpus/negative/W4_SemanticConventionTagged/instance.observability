@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: W4 W_SemanticConventionTagged — attribute key uses the
+     OTel semantic-convention prefix "http." but does not declare a
+     semanticConvention reference. -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-W4" version="1.0.0">
+  <services name="S1" namespace="com.example" language="JAVA">
+    <instrumentations name="com.example">
+      <spans name="HandleRequest" kind="SERVER" statusCode="UNSET">
+        <attributes key="http.request.method" valueType="STRING" value="POST"/>
+      </spans>
+    </instrumentations>
+  </services>
+</obs:ObservabilityModel>

@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-05-18T16:34:19Z",
+  "generated_at": "2026-05-18T17:05:00Z",
   "summary": {
     "scenarios": 3,
     "avg_CCR": 1.0,
     "avg_TCR_overall": 1.0,
     "avg_CED": 0.0,
-    "negative_cases": 13,
+    "negative_cases": 20,
     "ICR": 1.0
   },
   "scenarios": [
@@ -389,6 +389,7 @@
     {
       "case": "E01_UniqueServiceNames",
       "seeded_code": "E1",
+      "seeded_kind": "error",
       "seeded_name": "UniqueServiceNames",
       "rationale": "Two <services> elements share name=\"S1\"; OCL self.services->isUnique(name) must fail.",
       "caught": true,
@@ -404,6 +405,7 @@
     {
       "case": "E02_UniqueMetricNames",
       "seeded_code": "E2",
+      "seeded_kind": "error",
       "seeded_name": "UniqueMetricNames",
       "rationale": "Two metrics in the same InstrumentationScope share name \"m.dup\".",
       "caught": true,
@@ -416,6 +418,7 @@
     {
       "case": "E03_ReferencedMetricInModel",
       "seeded_code": "E3",
+      "seeded_kind": "error",
       "seeded_name": "ReferencedMetricInModel",
       "rationale": "AlertRule.referencedMetric resolves to a nonexistent @metrics.99.",
       "caught": true,
@@ -430,6 +433,7 @@
     {
       "case": "E04_ParentSpanSameScope",
       "seeded_code": "E4",
+      "seeded_kind": "error",
       "seeded_name": "ParentSpanSameScope",
       "rationale": "Span 'Child' in scope.b sets parentSpan to a span in scope.a; OTel scope boundaries must contain the parent-child relationship.",
       "caught": true,
@@ -442,6 +446,7 @@
     {
       "case": "E05_NonEmptyEndpoints",
       "seeded_code": "E5",
+      "seeded_kind": "error",
       "seeded_name": "NonEmptyEndpoints",
       "rationale": "TelemetryPipeline declares receivers but no exporters; OCL forbids open pipelines.",
       "caught": true,
@@ -458,6 +463,7 @@
     {
       "case": "E06a_TracesPipelinePrometheus",
       "seeded_code": "E6a",
+      "seeded_kind": "error",
       "seeded_name": "TracesPipelineComponentCompat",
       "rationale": "Prometheus receiver/exporter placed in a TRACES pipeline; Prometheus is signal-incompatible.",
       "caught": true,
@@ -474,6 +480,7 @@
     {
       "case": "E06b_MetricsPipelineJaeger",
       "seeded_code": "E6b",
+      "seeded_kind": "error",
       "seeded_name": "MetricsPipelineComponentCompat",
       "rationale": "Jaeger receiver/exporter placed in a METRICS pipeline; Jaeger is signal-incompatible.",
       "caught": true,
@@ -490,6 +497,7 @@
     {
       "case": "E07_SamplerRatioWellFormed",
       "seeded_code": "E7",
+      "seeded_kind": "error",
       "seeded_name": "SamplerRatioWellFormed",
       "rationale": "TRACE_ID_RATIO sampler with ratio=1.5; must lie in [0,1].",
       "caught": true,
@@ -504,6 +512,7 @@
     {
       "case": "E08_SeverityInRange",
       "seeded_code": "E8",
+      "seeded_kind": "error",
       "seeded_name": "SeverityInRange",
       "rationale": "OTel spec defines severityNumber in [1,24]; 25 is invalid.",
       "caught": true,
@@ -516,6 +525,7 @@
     {
       "case": "E09_ValidForDuration",
       "seeded_code": "E9",
+      "seeded_kind": "error",
       "seeded_name": "ValidForDuration",
       "rationale": "AlertRule forDuration=\"5minutes\" violates Prometheus duration grammar (must be one of ms|s|m|h|d).",
       "caught": true,
@@ -528,6 +538,7 @@
     {
       "case": "E10_ActionValueRequired",
       "seeded_code": "E10",
+      "seeded_kind": "error",
       "seeded_name": "ActionValueRequired",
       "rationale": "AttributeAction with action=INSERT must carry a value (DELETE may omit it).",
       "caught": true,
@@ -543,6 +554,7 @@
     {
       "case": "E11_HistogramAggregationConsistent",
       "seeded_code": "E11",
+      "seeded_kind": "error",
       "seeded_name": "HistogramAggregationConsistent",
       "rationale": "type=HISTOGRAM requires an explicit-bucket or exponential aggregation; SUM is forbidden.",
       "caught": true,
@@ -555,11 +567,103 @@
     {
       "case": "E12_NonEmptyModel",
       "seeded_code": "E12",
+      "seeded_kind": "error",
       "seeded_name": "NonEmptyModel",
       "rationale": "ObservabilityModel with zero <services> is structurally vacuous.",
       "caught": true,
       "caught_messages": [
         "E12 model has no services"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "W1_UnitUCUM",
+      "seeded_code": "W1",
+      "seeded_kind": "warning",
+      "seeded_name": "UnitUCUM",
+      "rationale": "Metric unit 'rpm' is not in the validator's UCUM whitelist; OCL W_UnitUCUM warns on non-UCUM units.",
+      "caught": true,
+      "caught_messages": [
+        "W1 Metric at //@services.0/@instrumentations.0/@metrics.0: non-UCUM unit 'rpm'"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "W2_AttributeCardinality",
+      "seeded_code": "W2",
+      "seeded_kind": "warning",
+      "seeded_name": "AttributeCardinality",
+      "rationale": "Metric declares 11 attributes; OCL W_AttributeCardinality warns when self.attributes->size() > 10.",
+      "caught": true,
+      "caught_messages": [
+        "W2 Metric at //@services.0/@instrumentations.0/@metrics.0 has >10 attributes"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "W3_LanguageInScope",
+      "seeded_code": "W3",
+      "seeded_kind": "warning",
+      "seeded_name": "LanguageInScope",
+      "rationale": "Service language=GO falls outside the JAVA-only emitter scope; OCL W_LanguageInScope warns.",
+      "caught": true,
+      "caught_messages": [
+        "W3 Service S1 language=GO not JAVA"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "W4_SemanticConventionTagged",
+      "seeded_code": "W4",
+      "seeded_kind": "warning",
+      "seeded_name": "SemanticConventionTagged",
+      "rationale": "Attribute key 'http.request.method' starts with a semantic-convention prefix but omits the semanticConvention reference.",
+      "caught": true,
+      "caught_messages": [
+        "W4 Attribute at //@services.0/@instrumentations.0/@spans.0/@attributes.0 key=http.request.method missing semanticConvention"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "W5_BatchProcessorRecommended",
+      "seeded_code": "W5",
+      "seeded_kind": "warning",
+      "seeded_name": "BatchProcessorRecommended",
+      "rationale": "Pipeline carries a MemoryLimiterProcessor only; W_BatchProcessorRecommended warns when no BatchProcessor is present.",
+      "caught": true,
+      "caught_messages": [
+        "W5 pipeline metrics-pipeline: no BatchProcessor"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "W6_CriticalForDuration",
+      "seeded_code": "W6",
+      "seeded_kind": "warning",
+      "seeded_name": "CriticalForDuration",
+      "rationale": "CRITICAL alert with forDuration=30s falls below the recommended dwell; W_CriticalForDuration warns on short critical windows.",
+      "caught": true,
+      "caught_messages": [
+        "W6 CRITICAL alert CritShort short duration 30s"
+      ],
+      "incidental_errors": [],
+      "warnings": []
+    },
+    {
+      "case": "W7_ServiceEmitsTelemetry",
+      "seeded_code": "W7",
+      "seeded_kind": "warning",
+      "seeded_name": "ServiceEmitsTelemetry",
+      "rationale": "Service has an instrumentation scope but no spans/metrics/logs; W_ServiceEmitsTelemetry warns when no telemetry is emitted.",
+      "caught": true,
+      "caught_messages": [
+        "W7 Service Silent emits no telemetry"
       ],
       "incidental_errors": [],
       "warnings": []

@@ -1,0 +1,6 @@
+{
+  "code": "W1",
+  "name": "UnitUCUM",
+  "kind": "warning",
+  "rationale": "Metric unit 'rpm' is not in the validator's UCUM whitelist; OCL W_UnitUCUM warns on non-UCUM units."
+}

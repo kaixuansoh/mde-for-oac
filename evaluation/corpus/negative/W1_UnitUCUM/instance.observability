@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: W1 W_UnitUCUM — metric unit "rpm" is outside the
+     UCUM whitelist the validator recognises. -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-W1" version="1.0.0">
+  <services name="S1" namespace="com.example" language="JAVA">
+    <instrumentations name="com.example">
+      <metrics name="m.rpm" type="COUNTER" unit="rpm" valueType="LONG"/>
+    </instrumentations>
+  </services>
+</obs:ObservabilityModel>

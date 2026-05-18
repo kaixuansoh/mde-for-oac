@@ -1,0 +1,6 @@
+{
+  "code": "W6",
+  "name": "CriticalForDuration",
+  "kind": "warning",
+  "rationale": "CRITICAL alert with forDuration=30s falls below the recommended dwell; W_CriticalForDuration warns on short critical windows."
+}

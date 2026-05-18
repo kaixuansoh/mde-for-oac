@@ -191,7 +191,11 @@ def evaluate_scenario(instance_path, generated_dir):
 # --------------------------------------------------------------------------
 def evaluate_negative_corpus(corpus_dir):
     """For each subdirectory holding {instance.observability, expected.json},
-    run the validator and check that the expected error code appears.
+    run the validator and check that the expected diagnostic code appears.
+
+    Codes starting with 'E' are matched against the validator's error list;
+    codes starting with 'W' are matched against the warning list. ICR counts
+    a case as caught when the seeded code appears in the matching list.
 
     Returns (per_case_records, overall_icr).
     """
@@ -204,21 +208,24 @@ def evaluate_negative_corpus(corpus_dir):
         inst = case_dir / 'instance.observability'
         expected = json.loads((case_dir / 'expected.json').read_text())
         code = expected['code']
+        kind = 'warning' if code.startswith('W') else 'error'
         _, errs, warns = validate(inst)
         # Match the seeded code as a whole token at the start of the message
-        # (the validator emits "E1 UniqueServiceNames: ...", "E6a pipeline ...").
+        # (the validator emits "E1 UniqueServiceNames: ...", "W3 Service ...").
         pat = re.compile(rf'\b{re.escape(code)}\b')
-        caught_by = [e for e in errs if pat.search(e)]
-        incidental = [e for e in errs if e not in caught_by]
+        target = warns if kind == 'warning' else errs
+        caught_by = [m for m in target if pat.search(m)]
+        incidental = [m for m in target if m not in caught_by]
         records.append({
             'case': case_dir.name,
             'seeded_code': code,
+            'seeded_kind': kind,
             'seeded_name': expected.get('name'),
             'rationale':   expected.get('rationale'),
             'caught': bool(caught_by),
             'caught_messages':    caught_by,
-            'incidental_errors':  incidental,
-            'warnings': warns,
+            'incidental_errors':  errs if kind == 'warning' else incidental,
+            'warnings':           incidental if kind == 'warning' else warns,
         })
     n_caught = sum(1 for r in records if r['caught'])
     icr = (n_caught / len(records)) if records else 0.0
@@ -283,12 +290,12 @@ def main():
 
     if neg_records:
         print(f'\nNegative-corpus ICR — {len(neg_records)} cases')
-        print(f"{'Case':<42} {'Seeded':>7} {'Caught':>7}")
-        print('-' * 60)
+        print(f"{'Case':<42} {'Seeded':>7} {'Kind':>8} {'Caught':>7}")
+        print('-' * 68)
         for r in neg_records:
             mark = 'yes' if r['caught'] else 'NO'
-            print(f"{r['case']:<42} {r['seeded_code']:>7} {mark:>7}")
-        print('-' * 60)
+            print(f"{r['case']:<42} {r['seeded_code']:>7} {r['seeded_kind']:>8} {mark:>7}")
+        print('-' * 68)
         print(f"ICR overall: {icr:.3f}")
 
     print(f'\nFull report: {out_json}')

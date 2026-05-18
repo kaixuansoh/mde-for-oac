@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: W2 W_AttributeCardinality — metric carries 11 attributes,
+     above the 10-attribute soft cap that drives high-cardinality blow-up. -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-W2" version="1.0.0">
+  <services name="S1" namespace="com.example" language="JAVA">
+    <instrumentations name="com.example">
+      <metrics name="m.high.cardinality" type="COUNTER" unit="1" valueType="LONG">
+        <attributes key="a01" valueType="STRING" value="v"/>
+        <attributes key="a02" valueType="STRING" value="v"/>
+        <attributes key="a03" valueType="STRING" value="v"/>
+        <attributes key="a04" valueType="STRING" value="v"/>
+        <attributes key="a05" valueType="STRING" value="v"/>
+        <attributes key="a06" valueType="STRING" value="v"/>
+        <attributes key="a07" valueType="STRING" value="v"/>
+        <attributes key="a08" valueType="STRING" value="v"/>
+        <attributes key="a09" valueType="STRING" value="v"/>
+        <attributes key="a10" valueType="STRING" value="v"/>
+        <attributes key="a11" valueType="STRING" value="v"/>
+      </metrics>
+    </instrumentations>
+  </services>
+</obs:ObservabilityModel>

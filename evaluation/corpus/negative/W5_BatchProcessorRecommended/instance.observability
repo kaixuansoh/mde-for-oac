@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Seeded violation: W5 W_BatchProcessorRecommended — pipeline has no
+     BatchProcessor among its processors. -->
+<obs:ObservabilityModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:obs="http://dissertation.um.edu.my/observability/1.0"
+    name="negative-W5" version="1.0.0">
+  <services name="S1" namespace="com.example" language="JAVA">
+    <instrumentations name="com.example">
+      <spans name="op" kind="INTERNAL" statusCode="UNSET"/>
+    </instrumentations>
+  </services>
+  <pipelines name="metrics-pipeline" signal="METRICS">
+    <receivers xsi:type="obs:OtlpReceiver" name="otlp" protocol="GRPC" endpoint="0.0.0.0:4317"/>
+    <processors xsi:type="obs:MemoryLimiterProcessor" name="mem" limitMiB="256" spikeLimitMiB="64"/>
+    <exporters xsi:type="obs:OtlpExporter" name="otlp" endpoint="collector:4317"/>
+  </pipelines>
+</obs:ObservabilityModel>

@@ -1,0 +1,6 @@
+{
+  "code": "W7",
+  "name": "ServiceEmitsTelemetry",
+  "kind": "warning",
+  "rationale": "Service has an instrumentation scope but no spans/metrics/logs; W_ServiceEmitsTelemetry warns when no telemetry is emitted."
+}

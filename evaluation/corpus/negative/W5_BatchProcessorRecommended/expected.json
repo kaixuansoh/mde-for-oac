@@ -1,0 +1,6 @@
+{
+  "code": "W5",
+  "name": "BatchProcessorRecommended",
+  "kind": "warning",
+  "rationale": "Pipeline carries a MemoryLimiterProcessor only; W_BatchProcessorRecommended warns when no BatchProcessor is present."
+}

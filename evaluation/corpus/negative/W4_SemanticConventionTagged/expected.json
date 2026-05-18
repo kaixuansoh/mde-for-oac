@@ -1,0 +1,6 @@
+{
+  "code": "W4",
+  "name": "SemanticConventionTagged",
+  "kind": "warning",
+  "rationale": "Attribute key 'http.request.method' starts with a semantic-convention prefix but omits the semanticConvention reference."
+}

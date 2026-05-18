@@ -1,0 +1,6 @@
+{
+  "code": "W2",
+  "name": "AttributeCardinality",
+  "kind": "warning",
+  "rationale": "Metric declares 11 attributes; OCL W_AttributeCardinality warns when self.attributes->size() > 10."
+}
