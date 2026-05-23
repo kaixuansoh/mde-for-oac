@@ -135,8 +135,25 @@ def compile_java_batch(java_files: Iterable[pathlib.Path]) -> dict[str, CheckRes
 # ---------------------------------------------------------------------------
 # OTel Collector YAML
 # ---------------------------------------------------------------------------
-_OTELCOL_BIN = next((b for b in ('otelcol', 'otelcol-contrib')
-                     if shutil.which(b) is not None), None)
+_EXTRA_BIN_DIRS = [
+    pathlib.Path.home() / '.local' / 'bin',
+    pathlib.Path('/opt/homebrew/bin'),
+    pathlib.Path('/usr/local/bin'),
+]
+
+
+def _which(name: str) -> str | None:
+    hit = shutil.which(name)
+    if hit:
+        return hit
+    for d in _EXTRA_BIN_DIRS:
+        p = d / name
+        if p.is_file() and os.access(p, os.X_OK):
+            return str(p)
+    return None
+
+
+_OTELCOL_BIN = next((p for p in (_which('otelcol'), _which('otelcol-contrib')) if p), None)
 
 
 def _collector_structural_check(text: str) -> CheckResult:
@@ -191,13 +208,13 @@ def check_collector_yaml(path: pathlib.Path) -> CheckResult:
     diags: list[str] = []
     if not ok:
         diags = [ln for ln in (proc.stderr or proc.stdout).splitlines() if ln.strip()]
-    return CheckResult(ok=ok, validator=_OTELCOL_BIN, diagnostics=diags)
+    return CheckResult(ok=ok, validator=pathlib.Path(_OTELCOL_BIN).name, diagnostics=diags)
 
 
 # ---------------------------------------------------------------------------
 # Prometheus alert rules
 # ---------------------------------------------------------------------------
-_PROMTOOL_BIN = shutil.which('promtool')
+_PROMTOOL_BIN = _which('promtool')
 
 _DURATION_RE = re.compile(r'^[0-9]+(ms|s|m|h|d|w|y)$')
 
