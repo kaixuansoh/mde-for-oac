@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-05-18T17:05:00Z",
+  "generated_at": "2026-05-23T07:00:44Z",
   "summary": {
     "scenarios": 3,
-    "avg_CCR": 1.0,
+    "avg_CCR": 0.9167,
     "avg_TCR_overall": 1.0,
-    "avg_CED": 0.0,
+    "avg_CED": 0.032585,
     "negative_cases": 20,
     "ICR": 1.0
   },
   "scenarios": [
     {
       "scenario": "banking",
-      "instance": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/examples/banking.observability",
-      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/generated/banking",
+      "instance": "/Users/kaixuan.soh/Downloads/mde-for-oac/examples/banking.observability",
+      "generated_dir": "/Users/kaixuan.soh/Downloads/mde-for-oac/generated/banking",
       "source_model": {
         "services": 6,
         "pipelines": 3,
@@ -161,21 +161,24 @@
         },
         {
           "file": "otel-collector.yaml",
-          "correct": true,
-          "validator": "yaml-structural-fallback",
+          "correct": false,
+          "validator": "otelcol-contrib",
           "unchecked": false,
-          "diagnostics": []
+          "diagnostics": [
+            "Error: failed to get config: cannot unmarshal the configuration: decoding failed due to the following error(s):",
+            "'processors' unknown type: \"compliance_tags\" for id: \"compliance_tags/traces\" (valid values: [log_dedup k8s_attributes k8sattributes metric_start_time metrics_transform remotetap resourcedetection attributes deltatocumulative deltatorate metricsgeneration metricstarttime metricstransform probabilistic_sampler redaction schema coralogix interval resource tail_sampling unroll filter groupbyattrs span sumologic transform isolationforest logdedup batch cumulativetodelta groupbytrace memory_limiter drain geoip])"
+          ]
         },
         {
           "file": "prometheus-alerts.yaml",
           "correct": true,
-          "validator": "promql-structural-fallback",
+          "validator": "promtool",
           "unchecked": false,
           "diagnostics": []
         }
       ],
       "metrics": {
-        "CCR": 1.0,
+        "CCR": 0.95,
         "TCR_overall": 1.0,
         "TCR_breakdown": {
           "spans": 1.0,
@@ -183,7 +186,7 @@
           "logs": 1.0,
           "alerts": 1.0
         },
-        "CED": 0.0
+        "CED": 0.020833
       },
       "validation": {
         "source_model_errors": 0,
@@ -192,8 +195,8 @@
     },
     {
       "scenario": "ecommerce",
-      "instance": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/examples/ecommerce.observability",
-      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/generated/ecommerce",
+      "instance": "/Users/kaixuan.soh/Downloads/mde-for-oac/examples/ecommerce.observability",
+      "generated_dir": "/Users/kaixuan.soh/Downloads/mde-for-oac/generated/ecommerce",
       "source_model": {
         "services": 3,
         "pipelines": 3,
@@ -280,14 +283,14 @@
         {
           "file": "otel-collector.yaml",
           "correct": true,
-          "validator": "yaml-structural-fallback",
+          "validator": "otelcol-contrib",
           "unchecked": false,
           "diagnostics": []
         },
         {
           "file": "prometheus-alerts.yaml",
           "correct": true,
-          "validator": "promql-structural-fallback",
+          "validator": "promtool",
           "unchecked": false,
           "diagnostics": []
         }
@@ -310,8 +313,8 @@
     },
     {
       "scenario": "payment-service",
-      "instance": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/examples/payment-service.observability",
-      "generated_dir": "/Users/kaixuan.soh/Downloads/dissertation/mde-for-oac/generated/payment-service",
+      "instance": "/Users/kaixuan.soh/Downloads/mde-for-oac/examples/payment-service.observability",
+      "generated_dir": "/Users/kaixuan.soh/Downloads/mde-for-oac/generated/payment-service",
       "source_model": {
         "services": 1,
         "pipelines": 3,
@@ -355,21 +358,27 @@
         },
         {
           "file": "otel-collector.yaml",
-          "correct": true,
-          "validator": "yaml-structural-fallback",
+          "correct": false,
+          "validator": "otelcol-contrib",
           "unchecked": false,
-          "diagnostics": []
+          "diagnostics": [
+            "Error: failed to get config: cannot unmarshal the configuration: decoding failed due to the following error(s):",
+            "'receivers' error reading configuration for \"jaeger/traces\": decoding failed due to the following error(s):",
+            "'protocols' has invalid keys: http",
+            "'processors' unknown type: \"enrich\" for id: \"enrich/metrics\" (valid values: [batch k8s_attributes k8sattributes sumologic unroll filter groupbytrace isolationforest log_dedup metric_start_time metrics_transform schema tail_sampling attributes cumulativetodelta coralogix metricsgeneration probabilistic_sampler resourcedetection transform memory_limiter metricstarttime metricstransform deltatorate drain geoip groupbyattrs interval redaction remotetap resource deltatocumulative logdedup span])",
+            "'exporters' the logging exporter has been deprecated, use the debug exporter instead"
+          ]
         },
         {
           "file": "prometheus-alerts.yaml",
           "correct": true,
-          "validator": "promql-structural-fallback",
+          "validator": "promtool",
           "unchecked": false,
           "diagnostics": []
         }
       ],
       "metrics": {
-        "CCR": 1.0,
+        "CCR": 0.8,
         "TCR_overall": 1.0,
         "TCR_breakdown": {
           "spans": 1.0,
@@ -377,7 +386,7 @@
           "logs": 1.0,
           "alerts": 1.0
         },
-        "CED": 0.0
+        "CED": 0.076923
       },
       "validation": {
         "source_model_errors": 0,
