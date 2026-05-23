@@ -46,6 +46,7 @@ A user authors one **M1 instance** describing their services, signals, pipelines
 │   └── generate.py                          Python emitter mirroring the .mtl templates
 │
 ├── jvm/                                     JVM runtime (Maven, EMF, picocli)
+│   ├── README.md                            Per-module overview
 │   ├── model/                               EMF bootstrap + Java validator
 │   ├── generator/                           Five Emitter implementations
 │   └── cli/                                 obs-generate command-line entry point
@@ -60,8 +61,8 @@ A user authors one **M1 instance** describing their services, signals, pipelines
 │   ├── validators/                          Real-tool correctness checks
 │   │   ├── pom.xml                          Pinned opentelemetry-api classpath shim
 │   │   └── checks.py                        javac / otelcol / promtool wrappers
-│   ├── corpus/negative/                     Minimal instances violating E1–E12
-│   └── results/evaluation.json              Latest run
+│   ├── corpus/negative/                     Minimal instances seeding E1–E12 + W1–W7
+│   └── results/                             Latest evaluation.json output
 │
 └── requirements.txt                         Python deps for the evaluation harness
 ```
@@ -97,11 +98,11 @@ Both runtimes validate the source model first and refuse to emit if any error-ti
 | **CCR** — Configuration Correctness Rate | positive | `N_correct / N_checkable` |
 | **TCR** — Telemetry Coverage Ratio       | positive | `N_present / N_required` (overall + per signal type) |
 | **CED** — Configuration Error Density    | positive | `N_errors / N_entities` |
-| **ICR** — Invariant Coverage Rate        | negative | `N_caught / N_seeded` |
+| **ICR** — Invariant Coverage Rate        | negative | `N_caught / N_seeded` across E1–E12 (errors) and W1–W7 (warnings) |
 
 CCR is computed with real validators rather than syntactic heuristics: generated Java is compiled with `javac` against the pinned `opentelemetry-api` classpath defined in `evaluation/validators/pom.xml`; Collector YAML is checked with `otelcol validate` when the binary is on PATH (with a structural fallback covering pipeline references and component types); Prometheus alert rules are checked with `promtool check rules` when present (with a duration-grammar and rule-structure fallback). The validator used per artefact is recorded in `evaluation/results/evaluation.json`. Artefacts whose validator is unavailable are reported as `unchecked` and excluded from CCR's denominator.
 
-ICR is measured against the negative corpus — one minimal `.observability` instance per OCL error invariant (E1–E12, with E6 split into E6a / E6b for the signal-specific pipeline-component rules). Each subdirectory pairs an `instance.observability` with an `expected.json` declaring the seeded error code; the harness asserts that code appears among the validator's errors. CED and ICR sit on disjoint inputs, so they complement each other rather than overlap.
+ICR is measured against the negative corpus — one minimal `.observability` instance per OCL invariant: 13 error seeds (E1–E12, with E6 split into E6a / E6b for the signal-specific pipeline-component rules) and 7 warning seeds (W1–W7 covering unit, attribute-cardinality, language, semantic-convention, batch-processor, critical-`for`, and service-emits-telemetry rules), for 20 cases in total. Each subdirectory pairs an `instance.observability` with an `expected.json` declaring the seeded diagnostic code; the harness asserts that code appears among the validator's diagnostics at the expected severity. CED and ICR sit on disjoint inputs, so they complement each other rather than overlap.
 
 ## Quickstart
 
