@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-23T07:00:44Z",
+  "generated_at": "2026-05-24T07:20:08Z",
   "summary": {
     "scenarios": 3,
     "avg_CCR": 0.9167,
@@ -24,15 +24,15 @@
         }
       },
       "generated": {
-        "artefacts": 20,
-        "checkable_artefacts": 20,
-        "unchecked_artefacts": 0,
+        "artifacts": 20,
+        "checkable_artifacts": 20,
+        "unchecked_artifacts": 0,
         "spans_present": 19,
         "metrics_present": 20,
         "logs_present": 8,
         "alerts_present": 6
       },
-      "artefact_correctness": [
+      "artifact_correctness": [
         {
           "file": "AccountServiceInstrumentation.java",
           "correct": true,
@@ -166,7 +166,7 @@
           "unchecked": false,
           "diagnostics": [
             "Error: failed to get config: cannot unmarshal the configuration: decoding failed due to the following error(s):",
-            "'processors' unknown type: \"compliance_tags\" for id: \"compliance_tags/traces\" (valid values: [log_dedup k8s_attributes k8sattributes metric_start_time metrics_transform remotetap resourcedetection attributes deltatocumulative deltatorate metricsgeneration metricstarttime metricstransform probabilistic_sampler redaction schema coralogix interval resource tail_sampling unroll filter groupbyattrs span sumologic transform isolationforest logdedup batch cumulativetodelta groupbytrace memory_limiter drain geoip])"
+            "'processors' unknown type: \"compliance_tags\" for id: \"compliance_tags/traces\" (valid values: [tail_sampling metricstarttime resource span transform deltatorate filter k8sattributes remotetap resourcedetection schema cumulativetodelta metrics_transform unroll memory_limiter isolationforest k8s_attributes logdedup attributes deltatocumulative groupbytrace metric_start_time redaction batch drain groupbyattrs probabilistic_sampler coralogix geoip interval log_dedup metricsgeneration metricstransform sumologic])"
           ]
         },
         {
@@ -208,15 +208,15 @@
         }
       },
       "generated": {
-        "artefacts": 11,
-        "checkable_artefacts": 11,
-        "unchecked_artefacts": 0,
+        "artifacts": 11,
+        "checkable_artifacts": 11,
+        "unchecked_artifacts": 0,
         "spans_present": 10,
         "metrics_present": 11,
         "logs_present": 4,
         "alerts_present": 4
       },
-      "artefact_correctness": [
+      "artifact_correctness": [
         {
           "file": "InventoryServiceInstrumentation.java",
           "correct": true,
@@ -326,15 +326,15 @@
         }
       },
       "generated": {
-        "artefacts": 5,
-        "checkable_artefacts": 5,
-        "unchecked_artefacts": 0,
+        "artifacts": 5,
+        "checkable_artifacts": 5,
+        "unchecked_artifacts": 0,
         "spans_present": 4,
         "metrics_present": 4,
         "logs_present": 2,
         "alerts_present": 2
       },
-      "artefact_correctness": [
+      "artifact_correctness": [
         {
           "file": "PaymentServiceInstrumentation.java",
           "correct": true,
@@ -365,8 +365,8 @@
             "Error: failed to get config: cannot unmarshal the configuration: decoding failed due to the following error(s):",
             "'receivers' error reading configuration for \"jaeger/traces\": decoding failed due to the following error(s):",
             "'protocols' has invalid keys: http",
-            "'processors' unknown type: \"enrich\" for id: \"enrich/metrics\" (valid values: [batch k8s_attributes k8sattributes sumologic unroll filter groupbytrace isolationforest log_dedup metric_start_time metrics_transform schema tail_sampling attributes cumulativetodelta coralogix metricsgeneration probabilistic_sampler resourcedetection transform memory_limiter metricstarttime metricstransform deltatorate drain geoip groupbyattrs interval redaction remotetap resource deltatocumulative logdedup span])",
-            "'exporters' the logging exporter has been deprecated, use the debug exporter instead"
+            "'processors' unknown type: \"enrich\" for id: \"enrich/metrics\" (valid values: [probabilistic_sampler span groupbyattrs groupbytrace isolationforest k8s_attributes attributes geoip interval metricsgeneration metricstransform resourcedetection deltatorate redaction tail_sampling transform remotetap resource unroll memory_limiter log_dedup schema batch cumulativetodelta drain filter k8sattributes metricstarttime metrics_transform sumologic coralogix deltatocumulative logdedup metric_start_time])",
+            "'exporters' unknown type: \"jaeger\" for id: \"jaeger/traces\" (valid values: [faro kafka prometheus pulsar syslog debug awscloudwatchlogs awsxray awss3 azure_blob loadbalancing logicmonitor logzio azuremonitor dataset file googlecloudpubsub prometheusremotewrite sentry tencentcloud_logservice azuredataexplorer doris googlecloudstorage honeycombmarker mezmo opensearch rabbitmq stef awsemf bmc_helix clickhouse googlecloud google_cloud_storage otelarrow zipkin otlp_grpc otlp_http otlphttp bmchelix elasticsearch splunk_hec tinybird otlp alibabacloud_logservice cassandra coralogix datadog googlemanagedprometheus honeycomb_marker influxdb nop awskinesis azureblob signalfx sumologic])"
           ]
         },
         {
