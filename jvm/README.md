@@ -15,7 +15,7 @@ jvm/
 | Module | Responsibility |
 |---|---|
 | `model` | Bootstraps EMF for standalone use, loads the Ecore metamodel as a dynamic package, loads `.observability` instances, runs structural + OCL-equivalent validation, returns errors and warnings. |
-| `generator` | Five `Emitter` implementations — `SpanInstrumentation`, `MetricRegistration`, `LogInstrumentation`, `CollectorYaml`, `PrometheusAlerts` — each mapping the metamodel's elements to a target artefact. |
+| `generator` | Five `Emitter` implementations — `SpanInstrumentation`, `MetricRegistration`, `LogInstrumentation`, `CollectorYaml`, `PrometheusAlerts` — each mapping the metamodel's elements to a target artifact. |
 | `cli` | Picocli command (`obs-generate`) that wires the model + generator together and produces a runnable shaded JAR. |
 
 ## Build
@@ -48,7 +48,7 @@ Options:
 
 ## Relationship to the Python prototype
 
-`scripts/generate.py` and the JVM CLI emit byte-identical artefacts modulo trailing newlines. Both implementations are kept in sync as the canonical `.mtl` templates evolve. The JVM project is the long-lived runtime; the Python script remains as a zero-dependency reproducer for users who do not have a JDK.
+`scripts/generate.py` and the JVM CLI emit byte-identical artifacts modulo trailing newlines. Both implementations are kept in sync as the canonical `.mtl` templates evolve. The JVM project is the long-lived runtime; the Python script remains as a zero-dependency reproducer for users who do not have a JDK.
 
 ## Validator parity
 

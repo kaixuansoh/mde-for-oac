@@ -4,23 +4,23 @@ A model-driven engineering framework for observability-as-code generation.
 
 ## Background
 
-Cloud-native systems rely on logs, metrics, traces, and alerts for operational visibility. In practice, these telemetry artefacts are configured manually across heterogeneous services, environments, and tools, leading to high operational overhead, configuration drift, inconsistent instrumentation, and limited scalability. Standards such as OpenTelemetry reduce vendor lock-in but do not remove the configuration burden — engineers still author Collector pipelines, alert rules, and instrumentation code by hand.
+Cloud-native systems rely on logs, metrics, traces, and alerts for operational visibility. In practice, these telemetry artifacts are configured manually across heterogeneous services, environments, and tools, leading to high operational overhead, configuration drift, inconsistent instrumentation, and limited scalability. Standards such as OpenTelemetry reduce vendor lock-in but do not remove the configuration burden — engineers still author Collector pipelines, alert rules, and instrumentation code by hand.
 
-This project applies **Model-Driven Engineering (MDE)** to lift observability configuration one layer of abstraction higher: capture the *intent* once in a platform-independent model, then mechanically derive every concrete Observability-as-Code (OaC) artefact via model-to-text transformation.
+This project applies **Model-Driven Engineering (MDE)** to lift observability configuration one layer of abstraction higher: capture the *intent* once in a platform-independent model, then mechanically derive every concrete Observability-as-Code (OaC) artifact via model-to-text transformation.
 
 ## Approach
 
-The framework follows the OMG four-layer modelling architecture:
+The framework follows the OMG four-layer modeling architecture:
 
 ```
 M3  Ecore (provided by EMF)                          ← language for metamodels
 M2  observability.ecore                              ← this domain's metamodel
 M1  *.observability instances                        ← user-authored models
-M0  Java OTel SDK + Collector YAML + Prometheus      ← generated artefacts
+M0  Java OTel SDK + Collector YAML + Prometheus      ← generated artifacts
         + actual telemetry at runtime
 ```
 
-A user authors one **M1 instance** describing their services, signals, pipelines, and alerts. The framework validates the instance against the metamodel (including 20 OCL semantic invariants), then runs five model-to-text transformations to produce all M0 artefacts deterministically.
+A user authors one **M1 instance** describing their services, signals, pipelines, and alerts. The framework validates the instance against the metamodel (including 20 OCL semantic invariants), then runs five model-to-text transformations to produce all M0 artifacts deterministically.
 
 ## Repository contents
 
@@ -52,9 +52,9 @@ A user authors one **M1 instance** describing their services, signals, pipelines
 │   └── cli/                                 obs-generate command-line entry point
 │
 ├── generated/                               Reference outputs
-│   ├── payment-service/                     5 artefacts
-│   ├── ecommerce/                           11 artefacts
-│   └── banking/                             20 artefacts
+│   ├── payment-service/                     5 artifacts
+│   ├── ecommerce/                           11 artifacts
+│   └── banking/                             20 artifacts
 │
 ├── evaluation/                              Phase III evaluation
 │   ├── evaluate.py                          CCR / TCR / CED / ICR harness
@@ -82,7 +82,7 @@ Two implementations re-implement the same checks against the same metamodel:
 
 ### Generator
 
-The five `.mtl` templates under `templates/acceleo/` are the canonical Phase II artefacts: OMG-standard model-to-text transformations covering Java span instrumentation, Java metric registration, Java log emission, Collector YAML, and Prometheus alerting rules. Two runtimes execute the same logic:
+The five `.mtl` templates under `templates/acceleo/` are the canonical Phase II artifacts: OMG-standard model-to-text transformations covering Java span instrumentation, Java metric registration, Java log emission, Collector YAML, and Prometheus alerting rules. Two runtimes execute the same logic:
 
 - `scripts/generate.py` — Python prototype, useful for environments without a JDK.
 - `jvm/cli/obs-generate.jar` — shaded executable JAR built from the Maven multi-module project. Outputs are byte-identical to the Python prototype modulo trailing newlines.
@@ -100,7 +100,7 @@ Both runtimes validate the source model first and refuse to emit if any error-ti
 | **CED** — Configuration Error Density    | positive | `N_errors / N_entities` |
 | **ICR** — Invariant Coverage Rate        | negative | `N_caught / N_seeded` across E1–E12 (errors) and W1–W7 (warnings) |
 
-CCR is computed with real validators rather than syntactic heuristics: generated Java is compiled with `javac` against the pinned `opentelemetry-api` classpath defined in `evaluation/validators/pom.xml`; Collector YAML is checked with `otelcol validate` when the binary is on PATH (with a structural fallback covering pipeline references and component types); Prometheus alert rules are checked with `promtool check rules` when present (with a duration-grammar and rule-structure fallback). The validator used per artefact is recorded in `evaluation/results/evaluation.json`. Artefacts whose validator is unavailable are reported as `unchecked` and excluded from CCR's denominator.
+CCR is computed with real validators rather than syntactic heuristics: generated Java is compiled with `javac` against the pinned `opentelemetry-api` classpath defined in `evaluation/validators/pom.xml`; Collector YAML is checked with `otelcol validate` when the binary is on PATH (with a structural fallback covering pipeline references and component types); Prometheus alert rules are checked with `promtool check rules` when present (with a duration-grammar and rule-structure fallback). The validator used per artifact is recorded in `evaluation/results/evaluation.json`. Artifacts whose validator is unavailable are reported as `unchecked` and excluded from CCR's denominator.
 
 ICR is measured against the negative corpus — one minimal `.observability` instance per OCL invariant: 13 error seeds (E1–E12, with E6 split into E6a / E6b for the signal-specific pipeline-component rules) and 7 warning seeds (W1–W7 covering unit, attribute-cardinality, language, semantic-convention, batch-processor, critical-`for`, and service-emits-telemetry rules), for 20 cases in total. Each subdirectory pairs an `instance.observability` with an `expected.json` declaring the seeded diagnostic code; the harness asserts that code appears among the validator's diagnostics at the expected severity. CED and ICR sit on disjoint inputs, so they complement each other rather than overlap.
 
@@ -118,7 +118,7 @@ python3 -m venv .venv
 # 1. Validate an instance against the metamodel
 python3 scripts/validate_instance.py examples/payment-service.observability
 
-# 2. Generate Java + YAML artefacts
+# 2. Generate Java + YAML artifacts
 python3 scripts/generate.py examples/payment-service.observability \
                             generated/payment-service
 
