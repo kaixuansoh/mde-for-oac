@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 /**
  * Runs all five model-to-text emitters in sequence. Wipes the output
- * directory before regenerating so stale artefacts from a previous run
+ * directory before regenerating so stale artifacts from a previous run
  * never linger.
  */
 public final class Generator {

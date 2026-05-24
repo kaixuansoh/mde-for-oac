@@ -11,7 +11,7 @@ Replaces the prior brace-balance heuristic with:
 
 Each checker returns a (ok, diagnostics, validator) triple so the
 evaluation chapter can be honest about which validator ran for each
-artefact.
+artifact.
 """
 from __future__ import annotations
 

@@ -3,7 +3,7 @@
   Classpath shim for evaluation/evaluate.py.
 
   Sole purpose: pin the OpenTelemetry Java API version that generated
-  artefacts must compile against. The evaluation harness invokes
+  artifacts must compile against. The evaluation harness invokes
     mvn -q dependency:build-classpath -Dmdep.outputFile=classpath.txt
   once per run (cached afterwards) and feeds the resulting classpath
   to javac. There is no source code in this module.

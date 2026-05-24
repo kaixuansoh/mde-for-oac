@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
 Prototype model-to-text generator that mirrors the five Acceleo templates
-under framework/templates/acceleo/. Produces the same artefacts the .mtl
+under framework/templates/acceleo/. Produces the same artifacts the .mtl
 templates are intended to emit, so the generation logic can be exercised
 without an Eclipse + Acceleo runtime.
 
 Generation pipeline:
-    .observability  ->  parse + validate  ->  5 emitters  ->  artefacts/
+    .observability  ->  parse + validate  ->  5 emitters  ->  artifacts/
 
 Run:
     python3 generate.py <instance.observability> <output-dir>
@@ -441,7 +441,7 @@ def main():
     gen_collector_yaml(model, output_dir)
     gen_prometheus_alerts(model, output_dir)
     gen_log_instrumentation(model, output_dir)
-    print(f'Generated {len(list(output_dir.iterdir()))} artefact(s) in {output_dir}')
+    print(f'Generated {len(list(output_dir.iterdir()))} artifact(s) in {output_dir}')
 
 
 if __name__ == '__main__':

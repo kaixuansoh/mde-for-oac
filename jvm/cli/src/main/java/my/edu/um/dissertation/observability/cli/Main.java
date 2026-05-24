@@ -20,13 +20,13 @@ import java.util.concurrent.Callable;
         mixinStandardHelpOptions = true,
         version = "1.0.0",
         description = "Validate an .observability instance and generate "
-                + "Java + YAML Observability-as-Code artefacts.")
+                + "Java + YAML Observability-as-Code artifacts.")
 public final class Main implements Callable<Integer> {
 
     @Parameters(index = "0", description = "Path to a .observability instance file")
     private Path instance;
 
-    @Parameters(index = "1", description = "Output directory for generated artefacts")
+    @Parameters(index = "1", description = "Output directory for generated artifacts")
     private Path outputDir;
 
     @Option(names = {"-m", "--metamodel"},
@@ -35,7 +35,7 @@ public final class Main implements Callable<Integer> {
     private Path metamodel;
 
     @Option(names = "--validate-only",
-            description = "Run validation but do not generate artefacts.")
+            description = "Run validation but do not generate artifacts.")
     private boolean validateOnly;
 
     @Option(names = "--strict",
@@ -76,7 +76,7 @@ public final class Main implements Callable<Integer> {
         Files.createDirectories(outputDir);
         new Generator().generateAll(model, outputDir);
         long count = Files.list(outputDir).filter(Files::isRegularFile).count();
-        out("Generated " + count + " artefact(s) in " + outputDir);
+        out("Generated " + count + " artifact(s) in " + outputDir);
         return 0;
     }
 

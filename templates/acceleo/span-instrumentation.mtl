@@ -4,7 +4,7 @@
  *
  * Model-to-Text transformation: emits one Java class per Service
  * containing a static Tracer per InstrumentationScope and a factory
- * method per Span. Mirrors the §3.3.4 dissertation example, generalised
+ * method per Span. Mirrors the §3.3.4 dissertation example, generalized
  * to handle parent-child links, span events, and typed attributes.
  *
  * Source metamodel: http://dissertation.um.edu.my/observability/1.0

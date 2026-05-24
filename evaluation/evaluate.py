@@ -16,7 +16,7 @@ Notes on definitions:
   * CCR is now computed against real validators
     (javac against opentelemetry-api, otelcol validate, promtool check rules)
     with structural fallbacks recorded explicitly when the binary is absent.
-    See validators/checks.py for the per-artefact contract.
+    See validators/checks.py for the per-artifact contract.
   * CED is intentionally measured only on the positive corpus. On models that
     pass the OCL gate, CED >= 0 reflects defects the validator did not catch
     but real tools (javac etc.) do. ICR complements CED by quantifying
@@ -67,7 +67,7 @@ def count_required(model):
 
 
 # --------------------------------------------------------------------------
-# Artefact-level inventories — mirror what the templates emit
+# Artifact-level inventories — mirror what the templates emit
 # --------------------------------------------------------------------------
 def count_java_methods(java_text, prefix='start'):
     return len(re.findall(rf'public\s+\w+\s+{prefix}\w+\s*\(', java_text))
@@ -96,14 +96,14 @@ def evaluate_scenario(instance_path, generated_dir):
     gen_prometheus_alerts(model, out)
     gen_log_instrumentation(model, out)
 
-    artefacts = sorted(out.iterdir())
-    java_files = [f for f in artefacts if f.suffix == '.java']
+    artifacts = sorted(out.iterdir())
+    java_files = [f for f in artifacts if f.suffix == '.java']
 
     spans_present = 0
     metrics_present = 0
     logs_present = 0
     alerts_present = 0
-    for f in artefacts:
+    for f in artifacts:
         n = f.name
         if n.endswith('Instrumentation.java'): spans_present   += count_java_methods(f.read_text(), prefix='start')
         elif n.endswith('Metrics.java'):       metrics_present += count_metric_fields(f.read_text())
@@ -112,13 +112,13 @@ def evaluate_scenario(instance_path, generated_dir):
 
     java_results = compile_java_batch(java_files)
 
-    # An artefact whose validator could not run (binary or library absent)
+    # An artifact whose validator could not run (binary or library absent)
     # is reported but excluded from CCR's denominator: CCR is a property of
-    # artefacts we can actually verify.
+    # artifacts we can actually verify.
     UNAVAILABLE = {'missing-pyyaml', 'java-syntactic-fallback'}
 
-    artefact_results = []
-    for f in artefacts:
+    artifact_results = []
+    for f in artifacts:
         if f.suffix == '.java':
             r = java_results[str(f)]
         elif f.name == 'otel-collector.yaml':
@@ -127,14 +127,14 @@ def evaluate_scenario(instance_path, generated_dir):
             r = check_prometheus_alerts(f)
         else:
             r = CheckResult(ok=True, validator='none')
-        artefact_results.append({
+        artifact_results.append({
             'file': f.name,
             'correct': r.ok,
             'validator': r.validator,
             'unchecked': r.validator in UNAVAILABLE,
             'diagnostics': r.diagnostics,
         })
-    checkable = [a for a in artefact_results if not a['unchecked']]
+    checkable = [a for a in artifact_results if not a['unchecked']]
     n_correct = sum(1 for r in checkable if r['correct'])
     ccr = (n_correct / len(checkable)) if checkable else 0.0
 
@@ -164,15 +164,15 @@ def evaluate_scenario(instance_path, generated_dir):
             'required':  required,
         },
         'generated': {
-            'artefacts':       len(artefacts),
-            'checkable_artefacts': len(checkable),
-            'unchecked_artefacts': len(artefacts) - len(checkable),
+            'artifacts':       len(artifacts),
+            'checkable_artifacts': len(checkable),
+            'unchecked_artifacts': len(artifacts) - len(checkable),
             'spans_present':   spans_present,
             'metrics_present': metrics_present,
             'logs_present':    logs_present,
             'alerts_present':  alerts_present,
         },
-        'artefact_correctness': artefact_results,
+        'artifact_correctness': artifact_results,
         'metrics': {
             'CCR': round(ccr, 4),
             'TCR_overall': round(tcr_overall, 4),
@@ -277,11 +277,11 @@ def main():
 
     print(f'\nPhase III Evaluation — {len(pos_results)} positive scenario(s), '
           f'{len(neg_records)} negative case(s)')
-    print(f"{'Scenario':<32} {'Artefacts':>9} {'CCR':>6} {'TCR':>6} {'CED':>8}")
+    print(f"{'Scenario':<32} {'Artifacts':>9} {'CCR':>6} {'TCR':>6} {'CED':>8}")
     print('-' * 65)
     for r in pos_results:
         m = r['metrics']
-        print(f"{r['scenario']:<32} {r['generated']['artefacts']:>9} "
+        print(f"{r['scenario']:<32} {r['generated']['artifacts']:>9} "
               f"{m['CCR']:>6.3f} {m['TCR_overall']:>6.3f} {m['CED']:>8.4f}")
     print('-' * 65)
     print(f"{'AVERAGE':<32} {'':>9} "

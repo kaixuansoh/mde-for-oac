@@ -2,7 +2,7 @@
 
 The emitters take a parsed model root and an output directory; tests build
 minimal models in memory, run the emitter into a tmp_path, and assert on the
-artefact text. Assertions focus on observable output shape (method names,
+artifact text. Assertions focus on observable output shape (method names,
 YAML keys, severity enum names) rather than literal byte equality, so they
 survive cosmetic refactors."""
 from __future__ import annotations
