@@ -1,0 +1,73 @@
+@startuml ECommerce
+left to right direction
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam component {
+    BackgroundColor<<service>>    #DBEAFE
+    BorderColor<<service>>        #1D4ED8
+    BackgroundColor<<collector>>  #FEF3C7
+    BorderColor<<collector>>      #B45309
+    BackgroundColor<<backend>>    #F3F4F6
+    BorderColor<<backend>>        #6B7280
+    BackgroundColor<<alert>>      #FECACA
+    BorderColor<<alert>>          #B91C1C
+}
+skinparam node {
+    BackgroundColor              #FFFBEB
+    BorderColor                  #B45309
+}
+skinparam cloud {
+    BackgroundColor              #E5E7EB
+    BorderColor                  #6B7280
+}
+skinparam database {
+    BackgroundColor              #F3F4F6
+    BorderColor                  #6B7280
+}
+
+actor Client
+
+component "WebGateway"       as WG <<service>>
+component "OrderService"     as OS <<service>>
+component "InventoryService" as IS <<service>>
+
+cloud "CatalogService\n(external)" as CS
+cloud "PaymentGateway\n(external)" as PG
+
+Client --> WG : HTTP
+WG     --> OS : gRPC
+WG     --> CS
+OS     --> IS : gRPC
+OS     --> PG
+
+node "OpenTelemetry Collector" as COL {
+    component "traces-pipeline"  as TP <<collector>>
+    component "metrics-pipeline" as MP <<collector>>
+    component "logs-pipeline"    as LP <<collector>>
+}
+
+WG -down-> COL : OTLP
+OS -down-> COL : OTLP
+IS -down-> COL : OTLP
+
+component "Jaeger"     as J <<backend>>
+database  "Prometheus" as P <<backend>>
+component "Log sink"   as L <<backend>>
+
+TP --> J
+MP --> P
+LP --> L
+
+package "Alert Rules" as AR {
+    component "HighGatewayErrorRate" as A1 <<alert>>
+    component "HighOrderFailureRate" as A2 <<alert>>
+    component "HighOrderLatencyP99"  as A3 <<alert>>
+    component "LowInventoryStock"    as A4 <<alert>>
+}
+
+P --> AR : evaluate
+A1 ..> WG : gateway.5xx.total
+A2 ..> OS : orders.failed.total
+A3 ..> OS : order.duration
+A4 ..> IS : stock.level
+@enduml

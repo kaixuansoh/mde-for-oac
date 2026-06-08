@@ -1,0 +1,86 @@
+@startuml PaymentServiceM2ToM1
+title M2 → M1 instantiation for the PaymentService example
+hide circle
+hide empty members
+skinparam shadowing false
+skinparam linetype ortho
+skinparam class {
+    BackgroundColor<<m2>>     #E0E7FF
+    BorderColor<<m2>>         #4338CA
+    BackgroundColor<<m1>>     #FEF3C7
+    BorderColor<<m1>>         #B45309
+    FontColor                 #111827
+    HeaderBackgroundColor     transparent
+}
+
+' ============================================================
+' M2 — observability.ecore metaclasses
+' ============================================================
+package "M2 — observability.ecore" as M2 {
+    class ObservabilityModel    <<m2>>
+    class Service               <<m2>>
+    class Sampler               <<m2>>
+    class InstrumentationScope  <<m2>>
+    class Span                  <<m2>>
+    class Metric                <<m2>>
+    class Log                   <<m2>>
+    class TelemetryPipeline     <<m2>>
+    class AlertRule             <<m2>>
+
+    ObservabilityModel *-- Service
+    ObservabilityModel *-- TelemetryPipeline
+    ObservabilityModel *-- AlertRule
+    Service             *-- Sampler
+    Service             *-- InstrumentationScope
+    InstrumentationScope *-- Span
+    InstrumentationScope *-- Metric
+    InstrumentationScope *-- Log
+    AlertRule           --> Metric
+}
+
+' ============================================================
+' M1 — PaymentService instance objects
+' ============================================================
+package "M1 — payment-service.observability" as M1 {
+    object "psModel"          as o_model   <<m1>>
+    object "PaymentService"   as o_svc     <<m1>>
+    object "headSampler"      as o_sampler <<m1>>
+    object "paymentsScope"    as o_scope   <<m1>>
+    object "ProcessPayment"   as o_span    <<m1>>
+    object "payment.requests.total" as o_metric <<m1>>
+    object "errorLog"         as o_log     <<m1>>
+    object "tracesPipeline"   as o_pipe    <<m1>>
+    object "HighPaymentErrorRate" as o_alert <<m1>>
+
+    o_model -[#B45309]-> o_svc
+    o_model -[#B45309]-> o_pipe
+    o_model -[#B45309]-> o_alert
+    o_svc   -[#B45309]-> o_sampler
+    o_svc   -[#B45309]-> o_scope
+    o_scope -[#B45309]-> o_span
+    o_scope -[#B45309]-> o_metric
+    o_scope -[#B45309]-> o_log
+    o_alert .[#B91C1C].> o_metric
+}
+
+' ============================================================
+' «instanceOf» — M1 conforms to M2
+' ============================================================
+o_model   ..|> ObservabilityModel    : «instanceOf»
+o_svc     ..|> Service               : «instanceOf»
+o_sampler ..|> Sampler               : «instanceOf»
+o_scope   ..|> InstrumentationScope  : «instanceOf»
+o_span    ..|> Span                  : «instanceOf»
+o_metric  ..|> Metric                : «instanceOf»
+o_log     ..|> Log                   : «instanceOf»
+o_pipe    ..|> TelemetryPipeline     : «instanceOf»
+o_alert   ..|> AlertRule             : «instanceOf»
+
+legend right
+  |= Layer |= Meaning |
+  | <back:#E0E7FF>  M2  </back> | EClasses in observability.ecore |
+  | <back:#FEF3C7>  M1  </back> | Objects in payment-service.observability |
+  | ..> | conformance («instanceOf») |
+  | --> | containment / cross-reference |
+endlegend
+@enduml

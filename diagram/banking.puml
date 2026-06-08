@@ -1,0 +1,108 @@
+@startuml Banking
+top to bottom direction
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam component {
+    BackgroundColor<<service>>    #DBEAFE
+    BorderColor<<service>>        #1D4ED8
+    BackgroundColor<<collector>>  #FEF3C7
+    BorderColor<<collector>>      #B45309
+    BackgroundColor<<backend>>    #F3F4F6
+    BorderColor<<backend>>        #6B7280
+    BackgroundColor<<alert>>      #FECACA
+    BorderColor<<alert>>          #B91C1C
+}
+skinparam package {
+    BackgroundColor              #EFF6FF
+    BorderColor                  #1D4ED8
+}
+skinparam node {
+    BackgroundColor              #FFFBEB
+    BorderColor                  #B45309
+}
+skinparam queue {
+    BackgroundColor              #FDF2F8
+    BorderColor                  #BE185D
+}
+skinparam database {
+    BackgroundColor              #F3F4F6
+    BorderColor                  #6B7280
+}
+
+actor "Banking\nClient" as Client
+
+package "Identity" {
+    component "AuthService" as Auth <<service>>
+}
+package "Accounts & Ledger" {
+    component "AccountService" as Acct   <<service>>
+    component "LedgerService"  as Ledger <<service>>
+    Acct -[hidden]down- Ledger
+}
+package "Transaction" {
+    component "TransactionService"    as Txn   <<service>>
+    component "FraudDetectionService" as Fraud <<service>>
+    Txn -[hidden]down- Fraud
+}
+package "Customer comms" {
+    component "NotificationService" as Notif <<service>>
+}
+
+queue "Kafka" as Kafka
+
+Client --> Auth
+Client --> Acct
+Client --> Txn
+Txn    --> Fraud
+Txn    --> Acct
+Txn    --> Ledger
+Txn    --> Kafka
+Kafka  --> Notif
+
+node "OpenTelemetry Collector" as COL {
+    component "traces-pipeline\n(tail sampling)" as TP <<collector>>
+    component "metrics-pipeline"                 as MP <<collector>>
+    component "logs-pipeline"                    as LP <<collector>>
+    TP -[hidden]down- MP
+    MP -[hidden]down- LP
+}
+
+Auth   --> COL : OTLP
+Acct   --> COL : OTLP
+Txn    --> COL : OTLP
+Fraud  --> COL : OTLP
+Ledger --> COL : OTLP
+Notif  --> COL : OTLP
+
+component "Jaeger"     as J <<backend>>
+database  "Prometheus" as P <<backend>>
+component "Log sink"   as L <<backend>>
+
+TP --> J
+MP --> P
+LP --> L
+
+package "Alert Rules" as AR {
+    component "HighAuthFailureRate"          as A1 <<alert>>
+    component "SlowAuthLatencyP99"           as A2 <<alert>>
+    component "HighTransactionFailureRate"   as A3 <<alert>>
+    component "HighFraudFlagRate"            as A4 <<alert>>
+    component "NotificationDeliveryFailures" as A5 <<alert>>
+    component "LedgerImbalance"              as A6 <<alert>>
+    A1 -[hidden]down- A2
+    A2 -[hidden]down- A3
+    A3 -[hidden]down- A4
+    A4 -[hidden]down- A5
+    A5 -[hidden]down- A6
+}
+
+P --> AR : evaluate
+A1 ..> Auth   : auth.login.failures
+A2 ..> Auth   : auth.login.duration
+A3 ..> Txn    : transactions.failed.total
+A4 ..> Fraud  : fraud.flagged.total
+A5 ..> Notif  : notifications.failed.total
+A6 ..> Ledger : ledger.balance.discrepancy
+@enduml

@@ -1,0 +1,51 @@
+@startuml AlertRules
+hide circle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+    BackgroundColor<<root>>   #E0E7FF
+    BorderColor<<root>>       #4338CA
+    BackgroundColor<<ops>>    #FEF3C7
+    BorderColor<<ops>>        #B45309
+    BackgroundColor<<core>>   #DBEAFE
+    BorderColor<<core>>       #1D4ED8
+    BackgroundColor<<shared>> #F3F4F6
+    BorderColor<<shared>>     #6B7280
+    FontColor                 #111827
+    HeaderBackgroundColor     transparent
+}
+
+class ObservabilityModel <<root>> {
+    +name
+    +version
+}
+
+class AlertRule <<ops>> {
+    +name
+    +description
+    +expression
+    +severity
+    +forDuration
+}
+
+class Attribute <<shared>> {
+    +key
+    +valueType
+    +value
+    +semanticConvention
+}
+
+class Metric <<core>> {
+    +name
+    +type
+    +unit
+}
+
+ObservabilityModel "1" *-- "0..*" AlertRule : alertRules
+
+AlertRule "1" *-- "0..*" Attribute : labels
+AlertRule "1" *-- "0..*" Attribute : annotations
+
+AlertRule "0..*" --> "1" Metric : referencedMetric
+
+@enduml

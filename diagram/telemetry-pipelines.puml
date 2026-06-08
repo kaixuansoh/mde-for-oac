@@ -1,0 +1,93 @@
+@startuml TelemetryPipelines
+left to right direction
+hide circle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+    BackgroundColor<<root>> #E0E7FF
+    BorderColor<<root>>     #4338CA
+    BackgroundColor<<ops>>  #FEF3C7
+    BorderColor<<ops>>      #B45309
+    FontColor               #111827
+    HeaderBackgroundColor   transparent
+}
+
+class ObservabilityModel <<root>> {
+    +name
+    +version
+}
+
+class TelemetryPipeline <<ops>> {
+    +name
+    +signal
+}
+
+abstract class Receiver <<ops>> {
+    +name
+    +protocol
+    +endpoint
+}
+class OtlpReceiver <<ops>>
+class JaegerReceiver <<ops>>
+class PrometheusReceiver <<ops>>
+
+abstract class Processor <<ops>> {
+    +name
+}
+class BatchProcessor <<ops>> {
+    +timeout
+    +maxBatchSize
+}
+class MemoryLimiterProcessor <<ops>> {
+    +limitMiB
+    +spikeLimitMiB
+}
+class AttributesProcessor <<ops>>
+class TailSamplingProcessor <<ops>> {
+    +decisionWait
+}
+
+abstract class Exporter <<ops>> {
+    +name
+    +endpoint
+    +compression
+}
+class OtlpExporter <<ops>>
+class PrometheusExporter <<ops>>
+class LoggingExporter <<ops>>
+class JaegerExporter <<ops>>
+
+class AttributeAction <<ops>> {
+    +action
+    +key
+    +value
+}
+class SamplingPolicy <<ops>> {
+    +name
+    +type
+    +value
+}
+
+ObservabilityModel "1" *-- "0..*" TelemetryPipeline : pipelines
+
+TelemetryPipeline "1" *-- "1..*" Receiver  : receivers
+TelemetryPipeline "1" *-- "0..*" Processor : processors (ordered)
+TelemetryPipeline "1" *-- "1..*" Exporter  : exporters
+
+AttributesProcessor   "1" *-- "1..*" AttributeAction : actions (ordered)
+TailSamplingProcessor "1" *-- "1..*" SamplingPolicy  : policies
+
+Receiver <|-- OtlpReceiver
+Receiver <|-- JaegerReceiver
+Receiver <|-- PrometheusReceiver
+
+Processor <|-- BatchProcessor
+Processor <|-- MemoryLimiterProcessor
+Processor <|-- AttributesProcessor
+Processor <|-- TailSamplingProcessor
+
+Exporter <|-- OtlpExporter
+Exporter <|-- PrometheusExporter
+Exporter <|-- LoggingExporter
+Exporter <|-- JaegerExporter
+@enduml

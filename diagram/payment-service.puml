@@ -1,0 +1,51 @@
+@startuml PaymentService
+left to right direction
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam component {
+    BackgroundColor<<service>>    #DBEAFE
+    BorderColor<<service>>        #1D4ED8
+    BackgroundColor<<collector>>  #FEF3C7
+    BorderColor<<collector>>      #B45309
+    BackgroundColor<<backend>>    #F3F4F6
+    BorderColor<<backend>>        #6B7280
+    BackgroundColor<<alert>>      #FECACA
+    BorderColor<<alert>>          #B91C1C
+}
+skinparam node {
+    BackgroundColor              #FFFBEB
+    BorderColor                  #B45309
+}
+skinparam database {
+    BackgroundColor              #F3F4F6
+    BorderColor                  #6B7280
+}
+
+actor Client
+
+component "PaymentService" as PS <<service>>
+
+node "OpenTelemetry Collector" as COL {
+    component "traces-pipeline"  as TP <<collector>>
+    component "metrics-pipeline" as MP <<collector>>
+    component "logs-pipeline"    as LP <<collector>>
+}
+
+component "Jaeger"     as J <<backend>>
+database  "Prometheus" as P <<backend>>
+component "Log sink"   as L <<backend>>
+
+package "Alert Rules" as AR {
+    component "HighPaymentErrorRate"  as A1 <<alert>>
+    component "HighPaymentLatencyP99" as A2 <<alert>>
+}
+
+Client --> PS  : POST /payments
+PS     --> COL : OTLP
+TP     --> J
+MP     --> P
+LP     --> L
+P      --> AR  : evaluate
+A1 ..> PS : payment.errors
+A2 ..> PS : payment.duration
+@enduml

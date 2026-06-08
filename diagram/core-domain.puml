@@ -1,0 +1,80 @@
+@startuml CoreDomain
+hide circle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+    BackgroundColor<<root>>   #E0E7FF
+    BorderColor<<root>>       #4338CA
+    BackgroundColor<<core>>   #DBEAFE
+    BorderColor<<core>>       #1D4ED8
+    BackgroundColor<<shared>> #F3F4F6
+    BorderColor<<shared>>     #6B7280
+    FontColor                 #111827
+    HeaderBackgroundColor     transparent
+}
+
+class ObservabilityModel <<root>> {
+    +name
+    +version
+}
+class Service <<core>> {
+    +name
+    +namespace
+    +version
+    +environment
+    +language
+}
+class InstrumentationScope <<core>> {
+    +name
+    +version
+}
+class Span <<core>> {
+    +name
+    +kind
+    +statusCode
+}
+class SpanEvent <<core>> {
+    +name
+}
+class Metric <<core>> {
+    +name
+    +type
+    +unit
+    +valueType
+    +aggregation
+}
+class Log <<core>> {
+    +severityNumber
+    +severityText
+    +body
+    +correlateToSpan
+}
+class Sampler <<core>> {
+    +type
+    +ratio
+}
+class Attribute <<shared>> {
+    +key
+    +valueType
+    +value
+    +semanticConvention
+}
+
+ObservabilityModel "1" *-- "0..*" Service : services
+
+Service "1" *-- "1..*" InstrumentationScope : instrumentations
+Service "1" *-- "0..*" Attribute            : resourceAttributes
+Service "1" *-- "0..1" Sampler              : sampler
+
+InstrumentationScope "1" *-- "0..*" Span    : spans
+InstrumentationScope "1" *-- "0..*" Metric  : metrics
+InstrumentationScope "1" *-- "0..*" Log     : logs
+
+Span      "1" *-- "0..*" SpanEvent : events
+Span      "1" *-- "0..*" Attribute : attributes
+SpanEvent "1" *-- "0..*" Attribute : attributes
+Metric    "1" *-- "0..*" Attribute : attributes
+Log       "1" *-- "0..*" Attribute : attributes
+
+Span "0..1" --> "0..1" Span : parentSpan
+@enduml
