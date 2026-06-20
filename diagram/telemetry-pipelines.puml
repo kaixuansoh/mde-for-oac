@@ -3,6 +3,8 @@ left to right direction
 hide circle
 skinparam classAttributeIconSize 0
 skinparam shadowing false
+skinparam nodesep 12
+skinparam ranksep 25
 skinparam class {
     BackgroundColor<<root>> #E0E7FF
     BorderColor<<root>>     #4338CA
