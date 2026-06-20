@@ -3,7 +3,8 @@ top to bottom direction
 skinparam componentStyle uml2
 skinparam shadowing false
 skinparam nodesep 25
-skinparam ranksep 40
+skinparam ranksep 50
+skinparam linetype ortho
 skinparam component {
     BackgroundColor<<service>>    #DBEAFE
     BorderColor<<service>>        #1D4ED8
@@ -33,20 +34,20 @@ skinparam database {
 
 actor "Banking\nClient" as Client
 
-package "Identity" {
+package "Identity" as PID {
     component "AuthService" as Auth <<service>>
 }
-package "Accounts & Ledger" {
+package "Accounts & Ledger" as PAL {
     component "AccountService" as Acct   <<service>>
     component "LedgerService"  as Ledger <<service>>
     Acct -[hidden]down- Ledger
 }
-package "Transaction" {
+package "Transaction" as PT {
     component "TransactionService"    as Txn   <<service>>
     component "FraudDetectionService" as Fraud <<service>>
     Txn -[hidden]down- Fraud
 }
-package "Customer comms" {
+package "Customer comms" as PCC {
     component "NotificationService" as Notif <<service>>
 }
 
@@ -61,6 +62,10 @@ Txn    --> Ledger
 Txn    --> Kafka
 Kafka  --> Notif
 
+PID -[hidden]right- PAL
+PAL -[hidden]right- PT
+PT  -[hidden]right- PCC
+
 node "OpenTelemetry Collector" as COL {
     component "traces-pipeline\n(tail sampling)" as TP <<collector>>
     component "metrics-pipeline"                 as MP <<collector>>
@@ -71,9 +76,9 @@ node "OpenTelemetry Collector" as COL {
 
 Auth   --> COL : OTLP
 Acct   --> COL : OTLP
+Ledger --> COL : OTLP
 Txn    --> COL : OTLP
 Fraud  --> COL : OTLP
-Ledger --> COL : OTLP
 Notif  --> COL : OTLP
 
 component "Jaeger"     as J <<backend>>
@@ -83,6 +88,8 @@ component "Log sink"   as L <<backend>>
 TP --> J
 MP --> P
 LP --> L
+J -[hidden]down- P
+P -[hidden]down- L
 
 package "Alert Rules" as AR {
     component "HighAuthFailureRate"          as A1 <<alert>>

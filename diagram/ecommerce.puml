@@ -1,7 +1,10 @@
 @startuml ECommerce
-left to right direction
+top to bottom direction
 skinparam componentStyle uml2
 skinparam shadowing false
+skinparam nodesep 30
+skinparam ranksep 55
+skinparam linetype ortho
 skinparam component {
     BackgroundColor<<service>>    #DBEAFE
     BorderColor<<service>>        #1D4ED8
@@ -36,19 +39,24 @@ cloud "PaymentGateway\n(external)" as PG
 
 Client --> WG : HTTP
 WG     --> OS : gRPC
-WG     --> CS
 OS     --> IS : gRPC
+WG     --> CS
 OS     --> PG
+
+WG -[hidden]right- CS
+OS -[hidden]right- PG
 
 node "OpenTelemetry Collector" as COL {
     component "traces-pipeline"  as TP <<collector>>
     component "metrics-pipeline" as MP <<collector>>
     component "logs-pipeline"    as LP <<collector>>
+    TP -[hidden]down- MP
+    MP -[hidden]down- LP
 }
 
-WG -down-> COL : OTLP
-OS -down-> COL : OTLP
-IS -down-> COL : OTLP
+WG --> COL : OTLP
+OS --> COL : OTLP
+IS --> COL : OTLP
 
 component "Jaeger"     as J <<backend>>
 database  "Prometheus" as P <<backend>>
@@ -58,11 +66,17 @@ TP --> J
 MP --> P
 LP --> L
 
+J -[hidden]down- P
+P -[hidden]down- L
+
 package "Alert Rules" as AR {
     component "HighGatewayErrorRate" as A1 <<alert>>
     component "HighOrderFailureRate" as A2 <<alert>>
     component "HighOrderLatencyP99"  as A3 <<alert>>
     component "LowInventoryStock"    as A4 <<alert>>
+    A1 -[hidden]down- A2
+    A2 -[hidden]down- A3
+    A3 -[hidden]down- A4
 }
 
 P --> AR : evaluate
